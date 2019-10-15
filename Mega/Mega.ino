@@ -8,6 +8,10 @@
 // Array for receiving inputs
 char inTraffic[32] = {};
 int i;
+int newState;
+int direction;
+int destination;
+int state;
 
 void setup() {
 
@@ -17,6 +21,9 @@ void setup() {
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
+  newState = 3;
+  direction = 1;
+  destination = 4;
 }
 
 void loop() {
@@ -27,9 +34,9 @@ void loop() {
   // Write a charatre to the Slave
   Wire.beginTransmission(SLAVE_ADDR);
 
-  Wire.write(1, 1);
-  Wire.write(0, 5);
-  Wire.write(3, 5);
+  Wire.write(newState);
+  Wire.write(direction);
+  Wire.write(destination);
 
   Wire.endTransmission();
 
@@ -42,8 +49,9 @@ void loop() {
   i = 0;
   while (Wire.available()) {
     inTraffic[i] = Wire.read();
+    
     i++;
-    // Print to Serial Monitor
-    Serial.println(inTraffic[i]);
   }
+  state = inTraffic[0];
+  Serial.println(state);
 }

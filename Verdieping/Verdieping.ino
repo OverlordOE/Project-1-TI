@@ -9,8 +9,8 @@
 
 /* Pins for 7-Segment Display */
 const int latchPin = 12; //Pin connected to ST_CP of 74HC595
-const int clockPin = 8; //Pin connected to SH_CP of 74HC595 
-const int dataPin = 11; //Pin connected to DS of 74HC595 
+const int clockPin = 8; //Pin connected to SH_CP of 74HC595
+const int dataPin = 11; //Pin connected to DS of 74HC595
 byte datArray[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // array without the decimal
 
 /* Pins for REED */
@@ -77,48 +77,50 @@ void setup() {
   Wire.begin(SLAVE_ADDR); // Initialize I2C communications as Slave
   Wire.onRequest(requestEvent); // Function to run when data requested from master
   Wire.onReceive(receiveEvent); // Function to run when data received from master
-  
+
   /* Setup Serial Monitor */
   Serial.begin(9600);
-  Serial.println((String)"Floor: "+defaultState+" Online!");
+  Serial.println((String)"Floor: " + defaultState + " Online!");
 }
- 
+
 void receiveEvent() {
- 
+
   // Read while data received
   index = 0;
   while (0 < Wire.available()) {
-    input = Wire.read(); //newState, direction, destination
+    input[index] = Wire.read(); //newState, direction, destination
     index++;
-    Serial.println(input[index]);
   }
-  
-}
- 
-void requestEvent() {
-  int newState = (int)input[0]; 
+  Serial.println("Received data from master");
+  int newState = (int)input[0];
   bool direction = (bool)input[1]; // 0 = down ,1 = up
   int destination = (int)input[2];
+  Serial.println(newState);
+  Serial.println(direction);
+  Serial.println(destination);
+}
 
+void requestEvent() {
+  
   checkDefaultState();
 
-  if(upButton){
-    if (!digitalRead(buttonUpPin)){
-      if (!buttonUpState){
+  if (upButton) {
+    if (!digitalRead(buttonUpPin)) {
+      if (!buttonUpState) {
         buttonUpState = true;
         // Count up
         changeState(++state);
       }
-   } else {
+    } else {
       buttonUpState = false;
-   }
-  
+    }
+
     digitalWrite(ledButtonUpPin, !digitalRead(buttonUpPin));
   }
-  
-  if(downButton){
-    if (!digitalRead(buttonDownPin)){
-      if (!buttonDownState){
+
+  if (downButton) {
+    if (!digitalRead(buttonDownPin)) {
+      if (!buttonDownState) {
         buttonDownState = true;
         // Count down
         changeState(--state);
@@ -129,16 +131,17 @@ void requestEvent() {
 
     digitalWrite(ledButtonDownPin, !digitalRead(buttonDownPin));
   }
+  Wire.write(state);
 }
- 
+
 void loop() {
- 
+
   // Time delay in loop
   delay(200);
 }
 
 void checkDefaultState() {
-  if (!digitalRead(reedPin) && !reedState){
+  if (!digitalRead(reedPin) && !reedState) {
     /* Set State*/
     reedState = true;
     state = defaultState;
@@ -149,8 +152,8 @@ void checkDefaultState() {
   }
 }
 
-void changeState(int newState){
-  if(minState > newState < maxState){//test if this works
+void changeState(int newState) {
+  if (minState > newState < maxState) { //test if this works
     state = newState;
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, LSBFIRST, datArray[++state]);
@@ -163,9 +166,9 @@ void changeState(int newState){
 /*-----------------------------------------------------------------------------------------------------*/
 
 /* Unused Loop Function */
-void segmentDisplayLoop(){
+void segmentDisplayLoop() {
   /* loop from 0 to 9 */
-  for(int num = 0; num < 10; num++)
+  for (int num = 0; num < 10; num++)
   {
     digitalWrite(latchPin, LOW);
     shiftOut(dataPin, clockPin, LSBFIRST, datArray[num]);
