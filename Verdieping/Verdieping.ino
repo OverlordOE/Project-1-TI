@@ -45,7 +45,8 @@ bool downButton;
 
 /* Slave Config */
 #define ANSWERSIZE 6 // Define Slave answer size
-String input; //input from master
+int index; //loop for reading
+char input[10]; //input from master
 String answer = "Led on"; // Define string with response to Master
 
 /*-----------------------------------------------------------------------------------------------------*/
@@ -85,10 +86,11 @@ void setup() {
 void receiveEvent() {
  
   // Read while data received
-  int index = 0;
+  index = 0;
   while (0 < Wire.available()) {
     input = Wire.read(); //newState, direction, destination
-    
+    index++;
+    Serial.println(input[index]);
   }
   
 }
@@ -132,7 +134,7 @@ void requestEvent() {
 void loop() {
  
   // Time delay in loop
-  delay(50);
+  delay(200);
 }
 
 void checkDefaultState() {
