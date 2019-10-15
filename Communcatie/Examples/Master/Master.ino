@@ -34,7 +34,6 @@ void loop() {
   Serial.println("Receive data:");
 
   // Read response from Slave
-  // Read back 7 characters
   Wire.requestFrom(SLAVE_ADDR, ANSWERSIZE);
 
   // Add characters to string
