@@ -1,5 +1,6 @@
 // Include Arduino Wire library for I2C
 #include <Wire.h>
+#include <Keypad.h>
 
 // Define Slave I2C Address
 #define SLAVE_ADDR 9
@@ -12,6 +13,23 @@ int newState;
 int direction;
 int destination;
 int state;
+
+//keypad
+const byte ROWS = 4;
+const byte COLS = 4;
+
+char keys[ROWS][COLS]={
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+
+byte rowPins[ROWS]{13,12,11,10};
+byte colPins[COLS]{9,8,7,6};
+
+
+Keypad keypad = Keypad(makeKeymap(keys),rowPins,colPins,ROWS,COLS);
 
 void setup() {
 
@@ -27,8 +45,8 @@ void setup() {
 }
 
 void loop() {
-
-  delay(500);
+  delay(1000);
+  //
   Serial.println("Write data to slave");
 
   // Write a charatre to the Slave
@@ -54,4 +72,7 @@ void loop() {
   }
   state = inTraffic[0];
   Serial.println(state);
+  //
+  char key = keypad.getKey();
+   Serial.print(key); 
 }
