@@ -25,6 +25,8 @@ const byte ledButtonUpPin = 6;
 boolean buttonDownState = false;
 boolean buttonUpState = false;
 
+int test = 1; //test variable
+
 /* pins for leds */
 //Todo
 
@@ -39,7 +41,7 @@ byte state = 0; //Starting Floor number
 
 /* Local Config */
 byte defaultState = 2; // Floor number of local Floor
-#define SLAVE_ADDR 9 // Slave I2C Address
+#define SLAVE_ADDR 12 // Slave I2C Address
 bool upButton;
 bool downButton;
 
@@ -131,7 +133,7 @@ void requestEvent() {
 
     digitalWrite(ledButtonDownPin, !digitalRead(buttonDownPin));
   }
-  Wire.write(state);
+  Wire.write(test);
 }
 
 void loop() {
