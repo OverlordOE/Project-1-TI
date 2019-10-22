@@ -6,8 +6,8 @@
 // Define Slave answer size
 #define ANSWERSIZE 6
 // Array for receiving inputs
-char inTraffic[32] = {};
-int i;
+char input[10] = {};
+int index;
 int newState;
 int direction;
 int destination;
@@ -39,19 +39,18 @@ void loop() {
   Wire.write(destination);
 
   Wire.endTransmission();
-
+  Serial.println("Transmission done");
   Serial.println("Receive data:");
 
   // Read response from Slave
   Wire.requestFrom(SLAVE_ADDR, ANSWERSIZE);
 
   // Add characters to string
-  i = 0;
+  index = 0;
   while (Wire.available()) {
-    inTraffic[i] = Wire.read();
-    
-    i++;
+    input[index] = Wire.read();
+    index++;
   }
-  state = inTraffic[0];
+  state = input[0];
   Serial.println(state);
 }
