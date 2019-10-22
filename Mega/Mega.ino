@@ -1,6 +1,7 @@
 // Include Arduino Wire library for I2C
 #include <Wire.h>
 #include <Keypad.h>
+#include <Stepper.h>
 
 // Define Slave I2C Address
 #define SLAVE_ADDR 9
@@ -13,6 +14,7 @@ int newState;
 int direction;
 int destination;
 int state;
+const int stepsPerRevolution = 32;
 
 //keypad
 const byte ROWS = 4;
@@ -31,11 +33,15 @@ byte colPins[COLS]{9,8,7,6};
 
 Keypad keypad = Keypad(makeKeymap(keys),rowPins,colPins,ROWS,COLS);
 
+
+//motor
+Stepper myStepper = Stepper(stepsPerRevolution, 2,4,3,5);
+
 void setup() {
 
   // Initialize I2C communications as Master
   Wire.begin();
-
+  myStepper.setSpeed(700);
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
@@ -45,7 +51,7 @@ void setup() {
 }
 
 void loop() {
-  delay(1000);
+  delay(50);
   //
   Serial.println("Write data to slave");
 
@@ -75,4 +81,8 @@ void loop() {
   //
   char key = keypad.getKey();
    Serial.print(key); 
+
+   // Step one revolution in one direction:
+  Serial.println("clockwise");
+  myStepper.step(stepsPerRevolution);
 }
