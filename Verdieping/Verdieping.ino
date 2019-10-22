@@ -25,6 +25,8 @@ const byte ledButtonUpPin = 6;
 boolean buttonDownState = false;
 boolean buttonUpState = false;
 
+int test = 1; //test variable
+
 /* pins for leds */
 //Todo
 
@@ -39,7 +41,7 @@ byte state = 0; //Starting Floor number
 
 /* Local Config */
 byte defaultState = 2; // Floor number of local Floor
-#define SLAVE_ADDR 9 // Slave I2C Address
+#define SLAVE_ADDR 12 // Slave I2C Address
 bool upButton;
 bool downButton;
 
@@ -91,7 +93,9 @@ void receiveEvent() {
     input[index] = Wire.read(); //newState, direction, destination
     index++;
   }
+
   Serial.println("Received data from master");
+
   int newState = (int)input[0];
   bool direction = (bool)input[1]; // 0 = down ,1 = up
   int destination = (int)input[2];
@@ -101,7 +105,7 @@ void receiveEvent() {
 }
 
 void requestEvent() {
-  
+
   checkDefaultState();
 
   if (upButton) {
@@ -111,9 +115,7 @@ void requestEvent() {
         // Count up
         changeState(++state);
       }
-    } else {
-      buttonUpState = false;
-    }
+    } else {buttonUpState = false;}
 
     digitalWrite(ledButtonUpPin, !digitalRead(buttonUpPin));
   }
@@ -131,13 +133,11 @@ void requestEvent() {
 
     digitalWrite(ledButtonDownPin, !digitalRead(buttonDownPin));
   }
-  Wire.write(state);
+  Wire.write(test);
 }
 
 void loop() {
-
-  // Time delay in loop
-  delay(200);
+  delay(200); // Time delay in loop
 }
 
 void checkDefaultState() {
@@ -145,11 +145,8 @@ void checkDefaultState() {
     /* Set State*/
     reedState = true;
     state = defaultState;
-
     changeState(defaultState);
-  } else {
-    reedState = false;
-  }
+  } else {reedState = false;}
 }
 
 void changeState(int newState) {
@@ -165,9 +162,9 @@ void changeState(int newState) {
 /*- Unused Functions ----------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
 
-/* Unused Loop Function */
+/* Unused Loop Function 
 void segmentDisplayLoop() {
-  /* loop from 0 to 9 */
+  // loop from 0 to 9 
   for (int num = 0; num < 10; num++)
   {
     digitalWrite(latchPin, LOW);
@@ -175,4 +172,4 @@ void segmentDisplayLoop() {
     digitalWrite(latchPin, HIGH);
     delay(1000); //wait for a second
   }
-}
+}*/

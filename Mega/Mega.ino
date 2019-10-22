@@ -4,12 +4,23 @@
 #include <Stepper.h>
 
 // Define Slave I2C Address
-#define SLAVE_ADDR 9
+#define VERD_1 9
+#define VERD_2 10
+#define VERD_3 11
+#define VERD_4 12
+#define VERD_5 13
+
 // Define Slave answer size
 #define ANSWERSIZE 6
+
 // Array for receiving inputs
-char inTraffic[32] = {};
-int i;
+char input1[10] = {};
+char input2[10] = {};
+char input3[10] = {};
+char input4[10] = {};
+char input5[10] = {};
+
+int index;
 int newState;
 int direction;
 int destination;
@@ -30,12 +41,8 @@ char keys[ROWS][COLS]={
 byte rowPins[ROWS]{13,12,11,10};
 byte colPins[COLS]{9,8,7,6};
 
-
 Keypad keypad = Keypad(makeKeymap(keys),rowPins,colPins,ROWS,COLS);
-
-
-//motor
-Stepper myStepper = Stepper(stepsPerRevolution, 2,4,3,5);
+Stepper myStepper = Stepper(stepsPerRevolution, 2,4,3,5); //motor
 
 void setup() {
 
@@ -52,37 +59,84 @@ void setup() {
 
 void loop() {
   delay(50);
-  //
-  Serial.println("Write data to slave");
-
-  // Write a charatre to the Slave
-  Wire.beginTransmission(SLAVE_ADDR);
-
-  Wire.write(newState);
-  Wire.write(direction);
-  Wire.write(destination);
-
-  Wire.endTransmission();
+  //keypad
+  char key = keypad.getKey();
+  Serial.print(key); 
+  
+  // Step one revolution in one direction:
+  myStepper.step(stepsPerRevolution);
+  
+  sendData(VERD_1, newState, direction, destination);
+  sendData(VERD_2, newState, direction, destination);
+  sendData(VERD_3, newState, direction, destination);
+  sendData(VERD_4, newState, direction, destination);
+  sendData(VERD_5, newState, direction, destination);
 
   Serial.println("Receive data:");
-
-  // Read response from Slave
-  Wire.requestFrom(SLAVE_ADDR, ANSWERSIZE);
-
-  // Add characters to string
-  i = 0;
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  // Read response from Slave1
+  Wire.requestFrom(VERD_1, ANSWERSIZE);
+  index = 0;
   while (Wire.available()) {
-    inTraffic[i] = Wire.read();
-    
-    i++;
+    input1[index] = Wire.read();
+    index++;
   }
-  state = inTraffic[0];
-  Serial.println(state);
-  //
-  char key = keypad.getKey();
-   Serial.print(key); 
+  state = input1[0];
+  Serial.println((String)"verdieping 1: " + state);
+  
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  // Read response from Slave2
+  Wire.requestFrom(VERD_2, ANSWERSIZE);
+  index = 0;
+  while (Wire.available()) {
+    input2[index] = Wire.read();
+    index++;
+  }
+  state = input2[0];
+  Serial.println((String)"verdieping 2: " + state);
+    
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  // Read response from Slave3
+  Wire.requestFrom(VERD_3, ANSWERSIZE);
+  index = 0;
+  while (Wire.available()) {
+    input3[index] = Wire.read();
+    index++;
+  }
+  state = input3[0];
+  Serial.println((String)"verdieping 3: " + state);
+  
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  // Read response from Slave4
+  Wire.requestFrom(VERD_4, ANSWERSIZE);
+  index = 0;
+  while (Wire.available()) {
+    input4[index] = Wire.read();
+    index++;
+  }
+  state = input4[0];
+  Serial.println((String)"verdieping 4: " + state);
 
-   // Step one revolution in one direction:
-  Serial.println("clockwise");
-  myStepper.step(stepsPerRevolution);
-}
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  // Read response from Slave5
+  Wire.requestFrom(VERD_5, ANSWERSIZE);
+  index = 0;
+  while (Wire.available()) {
+    input5[index] = Wire.read();
+    index++;
+  }
+  state = input5[0];
+  Serial.println((String)"verdieping 5: " + state);
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+  Serial.println("Receiving done");
+  }
+
+  void sendData(int verdieping, int newState, int direction, int destination) {
+    Serial.println((String)"Transmission verieping " + verdieping + " started!");
+    Wire.beginTransmission(verdieping); //begin transmission
+    Wire.write(newState);
+    Wire.write(direction);
+    Wire.write(destination);
+    Wire.endTransmission(); //end transmission
+    Serial.println((String)"Transmission verieping " + verdieping + " done!");
+    }
