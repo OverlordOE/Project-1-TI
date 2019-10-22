@@ -25,24 +25,26 @@ int newState;
 int direction;
 int destination;
 int state;
+int upBut;
+int downBut;
 const int stepsPerRevolution = 32;
 
 //keypad
 const byte ROWS = 4;
 const byte COLS = 4;
 
-char keys[ROWS][COLS]={
-  {'1','2','3','A'},
-  {'4','5','6','B'},
-  {'7','8','9','C'},
-  {'*','0','#','D'}
+char keys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
 };
 
-byte rowPins[ROWS]{13,12,11,10};
-byte colPins[COLS]{9,8,7,6};
+byte rowPins[ROWS] {13, 12, 11, 10};
+byte colPins[COLS] {9, 8, 7, 6};
 
-Keypad keypad = Keypad(makeKeymap(keys),rowPins,colPins,ROWS,COLS);
-Stepper myStepper = Stepper(stepsPerRevolution, 2,4,3,5); //motor
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
 
 void setup() {
 
@@ -61,11 +63,11 @@ void loop() {
   delay(50);
   //keypad
   char key = keypad.getKey();
-  Serial.print(key); 
-  
+  Serial.print(key);
+
   // Step one revolution in one direction:
   myStepper.step(stepsPerRevolution);
-  
+
   sendData(VERD_1, newState, direction, destination);
   sendData(VERD_2, newState, direction, destination);
   sendData(VERD_3, newState, direction, destination);
@@ -82,8 +84,13 @@ void loop() {
     index++;
   }
   state = input1[0];
-  Serial.println((String)"verdieping 1: " + state);
-  
+  downBut = input1[1];
+  upBut = input1[2];
+  Serial.println("///////////////////////////////////////");
+  Serial.println((String)"verdieping 1 state: " + state);
+  Serial.println((String)"verdieping 1 up: " + upBut);
+  Serial.println((String)"verdieping 1 down: " + downBut);
+
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // Read response from Slave2
   Wire.requestFrom(VERD_2, ANSWERSIZE);
@@ -93,8 +100,13 @@ void loop() {
     index++;
   }
   state = input2[0];
-  Serial.println((String)"verdieping 2: " + state);
-    
+  downBut = input2[1];
+  upBut = input2[2];
+  Serial.println("///////////////////////////////////////");
+  Serial.println((String)"verdieping 2 state: " + state);
+  Serial.println((String)"verdieping 2 up: " + upBut);
+  Serial.println((String)"verdieping 2 down: " + downBut);
+
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // Read response from Slave3
   Wire.requestFrom(VERD_3, ANSWERSIZE);
@@ -104,8 +116,13 @@ void loop() {
     index++;
   }
   state = input3[0];
-  Serial.println((String)"verdieping 3: " + state);
-  
+  downBut = input3[1];
+  upBut = input3[2];
+  Serial.println("///////////////////////////////////////");
+  Serial.println((String)"verdieping 3 state: " + state);
+  Serial.println((String)"verdieping 3 up: " + upBut);
+  Serial.println((String)"verdieping 3 down: " + downBut);
+
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // Read response from Slave4
   Wire.requestFrom(VERD_4, ANSWERSIZE);
@@ -115,7 +132,12 @@ void loop() {
     index++;
   }
   state = input4[0];
-  Serial.println((String)"verdieping 4: " + state);
+  downBut = input4[1];
+  upBut = input4[2];
+  Serial.println("///////////////////////////////////////");
+  Serial.println((String)"verdieping 4 state: " + state);
+  Serial.println((String)"verdieping 4 up: " + upBut);
+  Serial.println((String)"verdieping 4 down: " + downBut);
 
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // Read response from Slave5
@@ -126,17 +148,23 @@ void loop() {
     index++;
   }
   state = input5[0];
-  Serial.println((String)"verdieping 5: " + state);
+  downBut = input5[1];
+  upBut = input5[2];
+  Serial.println("///////////////////////////////////////");
+  Serial.println((String)"verdieping 5 state: " + state);
+  Serial.println((String)"verdieping 5 up: " + upBut);
+  Serial.println((String)"verdieping 5 down: " + downBut);
+  Serial.println("///////////////////////////////////////");
   ///////////////////////////////////////////////////////////////////////////////////////////////
   Serial.println("Receiving done");
-  }
+}
 
-  void sendData(int verdieping, int newState, int direction, int destination) {
-    Serial.println((String)"Transmission verieping " + verdieping + " started!");
-    Wire.beginTransmission(verdieping); //begin transmission
-    Wire.write(newState);
-    Wire.write(direction);
-    Wire.write(destination);
-    Wire.endTransmission(); //end transmission
-    Serial.println((String)"Transmission verieping " + verdieping + " done!");
-    }
+void sendData(int verdieping, int newState, int direction, int destination) {
+  Serial.println((String)"Transmission verieping " + verdieping + " started!");
+  Wire.beginTransmission(verdieping); //begin transmission
+  Wire.write(newState);
+  Wire.write(direction);
+  Wire.write(destination);
+  Wire.endTransmission(); //end transmission
+  Serial.println((String)"Transmission verieping " + verdieping + " done!");
+}
