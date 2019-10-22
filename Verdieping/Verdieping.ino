@@ -1,17 +1,17 @@
 /*-----------------------------------------------------------------------------------------------------*/
 /*- Libraries -----------------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
-#include <Wire.h> //I2C Library
+#include <Wire.h> // I2C Library
 
 /*-----------------------------------------------------------------------------------------------------*/
 /*- Pins ----------------------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
 
 /* Pins for 7-Segment Display */
-const int latchPin = 12; //Pin connected to ST_CP of 74HC595
-const int clockPin = 8; //Pin connected to SH_CP of 74HC595
-const int dataPin = 11; //Pin connected to DS of 74HC595
-byte datArray[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // array without the decimal
+const int latchPin = 12; // Pin connected to ST_CP of 74HC595
+const int clockPin = 8; // Pin connected to SH_CP of 74HC595
+const int dataPin = 11; // Pin connected to DS of 74HC595
+byte datArray[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
 
 /* Pins for REED */
 const byte reedPin = 2;
@@ -23,8 +23,10 @@ const byte ledPin[] = {5, 6};
 boolean buttonDownState = false;
 boolean buttonUpState = false;
 
+int test = 1; // Test variable
+
 /* pins for leds */
-//Todo
+// Todo
 
 /*-----------------------------------------------------------------------------------------------------*/
 /*- Config --------------------------------------------------------------------------------------------*/
@@ -62,7 +64,7 @@ void setup() {
   pinMode(reedPin, INPUT_PULLUP);
 
   for (byte i = 0; i < sizeof(buttonPin); i++) pinMode(buttonPin[i], INPUT_PULLUP);
-  for (byte i = 0; i < sizeof(ledPin);    i++) pinMode(ledPin[i],  OUTPUT);
+  for (byte i = 0; i < sizeof(ledPin); i++) pinMode(ledPin[i], OUTPUT);
 
   /* Set on default floor */
   //changeFloor(floor);
@@ -86,7 +88,7 @@ void receiveEvent() {
   // Read while data received
   index = 0;
   while (0 < Wire.available()) {
-    input[index] = Wire.read(); //newFloor, direction, destination
+    input[index] = Wire.read(); // newFloor, direction, destination
     index++;
   }
 
