@@ -1,5 +1,7 @@
 // Include Arduino Wire library for I2C
 #include <Wire.h>
+#include <Keypad.h>
+#include <Stepper.h>
 
 // Define Slave I2C Address
 #define VERD_1 9
@@ -23,12 +25,30 @@ int newState;
 int direction;
 int destination;
 int state;
+const int stepsPerRevolution = 32;
+
+//keypad
+const byte ROWS = 4;
+const byte COLS = 4;
+
+char keys[ROWS][COLS]={
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+
+byte rowPins[ROWS]{13,12,11,10};
+byte colPins[COLS]{9,8,7,6};
+
+Keypad keypad = Keypad(makeKeymap(keys),rowPins,colPins,ROWS,COLS);
+Stepper myStepper = Stepper(stepsPerRevolution, 2,4,3,5); //motor
 
 void setup() {
 
   // Initialize I2C communications as Master
   Wire.begin();
-
+  myStepper.setSpeed(700);
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
@@ -38,15 +58,21 @@ void setup() {
 }
 
 void loop() {
-
-  delay(500);
+  delay(50);
+  //keypad
+  char key = keypad.getKey();
+  Serial.print(key); 
+  
+  // Step one revolution in one direction:
+  myStepper.step(stepsPerRevolution);
+  
   sendData(VERD_1, newState, direction, destination);
   sendData(VERD_2, newState, direction, destination);
   sendData(VERD_3, newState, direction, destination);
   sendData(VERD_4, newState, direction, destination);
   sendData(VERD_5, newState, direction, destination);
+
   Serial.println("Receive data:");
-  
   ///////////////////////////////////////////////////////////////////////////////////////////////
   // Read response from Slave1
   Wire.requestFrom(VERD_1, ANSWERSIZE);
@@ -101,16 +127,16 @@ void loop() {
   }
   state = input5[0];
   Serial.println((String)"verdieping 5: " + state);
-
+  ///////////////////////////////////////////////////////////////////////////////////////////////
   Serial.println("Receiving done");
   }
 
   void sendData(int verdieping, int newState, int direction, int destination) {
     Serial.println((String)"Transmission verieping " + verdieping + " started!");
-    Wire.beginTransmission(verdieping);
+    Wire.beginTransmission(verdieping); //begin transmission
     Wire.write(newState);
     Wire.write(direction);
     Wire.write(destination);
-    Wire.endTransmission();
+    Wire.endTransmission(); //end transmission
     Serial.println((String)"Transmission verieping " + verdieping + " done!");
     }
