@@ -18,10 +18,8 @@ const byte reedPin = 2;
 boolean reedState = false;
 
 /* Pins for Buttons */
-const byte buttonDownPin = 3;
-const byte ledButtonDownPin = 5;
-const byte buttonUpPin = 4;
-const byte ledButtonUpPin = 6;
+const byte  buttonPin[]  = {3,4};
+const byte  ledPin[]     = {5,6};
 boolean buttonDownState = false;
 boolean buttonUpState = false;
 
@@ -60,10 +58,8 @@ void setup() {
 
   pinMode(reedPin, INPUT_PULLUP);
 
-  pinMode(buttonDownPin, INPUT_PULLUP);
-  pinMode(buttonUpPin, INPUT_PULLUP);
-  pinMode(ledButtonDownPin, OUTPUT);
-  pinMode(ledButtonUpPin, OUTPUT);
+  for (byte i=0; i<sizeof(buttonPin); i++) pinMode(buttonPin[i], INPUT_PULLUP);
+  for (byte i=0; i<sizeof(ledPin);    i++) pinMode(ledPin[i],  OUTPUT);
 
   /* Set on default floor */
   changeState(state);
@@ -81,18 +77,17 @@ void setup() {
   Serial.begin(9600);
   Serial.println((String)"Floor: "+defaultState+" Online!");
 }
- 
+
+
 void receiveEvent() {
- 
   // Read while data received
   int index = 0;
   while (0 < Wire.available()) {
     input = Wire.read(); //newState, direction, destination
-    
   }
-  
 }
- 
+
+
 void requestEvent() {
   int newState = (int)input[0]; 
   bool direction = (bool)input[1]; // 0 = down ,1 = up
@@ -100,40 +95,26 @@ void requestEvent() {
 
   checkDefaultState();
 
-  if(upButton){
-    if (!digitalRead(buttonUpPin)){
-      if (!buttonUpState){
-        buttonUpState = true;
-        // Count up
-        changeState(++state);
-      }
-   } else {
-      buttonUpState = false;
-   }
-  
-    digitalWrite(ledButtonUpPin, !digitalRead(buttonUpPin));
-  }
-  
-  if(downButton){
-    if (!digitalRead(buttonDownPin)){
-      if (!buttonDownState){
-        buttonDownState = true;
-        // Count down
-        changeState(--state);
-      }
-    } else {
-      buttonDownState = false;
-    }
-
-    digitalWrite(ledButtonDownPin, !digitalRead(buttonDownPin));
-  }
+  //Wire.write();
 }
- 
+
+
 void loop() {
- 
+  if(button(0)){
+    buttonDownState = true;
+    digitalWrite(ledPin[0], HIGH);
+  }
+  if(button(0)){
+    buttonUpState = true;
+    digitalWrite(ledPin[2], HIGH);
+  }
+
+  
   // Time delay in loop
   delay(50);
 }
+
+
 
 void checkDefaultState() {
   if (!digitalRead(reedPin) && !reedState){
@@ -147,6 +128,8 @@ void checkDefaultState() {
   }
 }
 
+
+
 void changeState(int newState){
   if(minState > newState < maxState){//test if this works
     state = newState;
@@ -154,6 +137,32 @@ void changeState(int newState){
     shiftOut(dataPin, clockPin, LSBFIRST, datArray[++state]);
     digitalWrite(latchPin, HIGH);
   }
+}
+
+
+
+boolean button(byte i)         // geeft DIRECT EENMALIG een '1' als knop i ingedrukt wordt
+{                              // knop i moet 50 ms los zijn voordat een nieuwe '1' gegeven kan worden 
+                               // in dit voorbeeld is bereik i: [0..3]
+
+  const  unsigned long debounce  =  50;
+  static unsigned long buttonTime[sizeof(buttonPin)];   // static array!!
+  static boolean       buttonFlg[sizeof(buttonPin)];    // static array!!
+
+  if (!digitalRead(buttonPin[i]))
+  {
+    buttonTime[i]=millis();
+    if (!buttonFlg[i])
+    {
+      buttonFlg[i]=1;
+      return(1);
+    }
+  }
+  else  
+  {
+    if ((millis()-buttonTime[i])>debounce) buttonFlg[i]=0;
+  }
+  return(0);
 }
 
 /*-----------------------------------------------------------------------------------------------------*/
