@@ -8,7 +8,7 @@
 /*-----------------------------------------------------------------------------------------------------*/
 
 /* Pins for 7-Segment Display */
-const int latchPin = 12; //Pin connected to ST_CP of 74HC595
+const int latchPin = 10; //Pin connected to ST_CP of 74HC595
 const int clockPin = 8; //Pin connected to SH_CP of 74HC595
 const int dataPin = 11; //Pin connected to DS of 74HC595
 byte datArray[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // array without the decimal
@@ -41,7 +41,7 @@ byte state = 0; //Starting Floor number
 
 /* Local Config */
 byte defaultState = 2; // Floor number of local Floor
-#define SLAVE_ADDR 12 // Slave I2C Address
+#define SLAVE_ADDR 10 // Slave I2C Address
 bool upButton;
 bool downButton;
 
@@ -115,7 +115,9 @@ void requestEvent() {
         // Count up
         changeState(++state);
       }
-    } else {buttonUpState = false;}
+    } else {
+      buttonUpState = false;
+    }
 
     digitalWrite(ledButtonUpPin, !digitalRead(buttonUpPin));
   }
@@ -133,7 +135,10 @@ void requestEvent() {
 
     digitalWrite(ledButtonDownPin, !digitalRead(buttonDownPin));
   }
-  Wire.write(test);
+  Wire.write(state);
+  Wire.write(2);
+  Wire.write(5);
+
 }
 
 void loop() {
@@ -146,7 +151,9 @@ void checkDefaultState() {
     reedState = true;
     state = defaultState;
     changeState(defaultState);
-  } else {reedState = false;}
+  } else {
+    reedState = false;
+  }
 }
 
 void changeState(int newState) {
@@ -162,9 +169,9 @@ void changeState(int newState) {
 /*- Unused Functions ----------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
 
-/* Unused Loop Function 
-void segmentDisplayLoop() {
-  // loop from 0 to 9 
+/* Unused Loop Function
+  void segmentDisplayLoop() {
+  // loop from 0 to 9
   for (int num = 0; num < 10; num++)
   {
     digitalWrite(latchPin, LOW);
@@ -172,4 +179,4 @@ void segmentDisplayLoop() {
     digitalWrite(latchPin, HIGH);
     delay(1000); //wait for a second
   }
-}*/
+  }*/
