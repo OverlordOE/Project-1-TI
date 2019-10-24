@@ -1,6 +1,5 @@
 # Project-TI
-Project 1: lift
-------
+#### Project 1: lift
 
 
 
