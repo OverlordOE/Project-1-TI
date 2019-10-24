@@ -18,42 +18,37 @@ const byte reedPin = 2;
 boolean reedState = false;
 
 /* Pins for Buttons */
-const byte buttonPin[] = {3, 4};
-const byte ledPin[] = {5, 6};
-boolean buttonDownState = false;
-boolean buttonUpState = false;
-
-int test = 1; // Test variable
+const byte buttonPin[2] = {3, 4}; // [0] = Down, [1] = Up
+bool buttonAvailable[2];
+bool buttonState[2] = {false, false};
 
 /* pins for leds */
-// Todo
+const byte ledPin[] = {5, 6};
 
 /*-----------------------------------------------------------------------------------------------------*/
 /*- Config --------------------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
 
 /* Elevator Config */
-byte minFloor = 0; // Lowest floor number
-byte maxFloor = 4; // Highest floor number
-byte currentFloor = 0; // Starting Floor number
-
-/* Local Config */
+const byte minFloor = 0; // Lowest floor number
+const byte maxFloor = 4; // Highest floor number
 const byte localFloor = 2; // Floor number of local Floor
-#define SLAVE_ADDR 9 // Slave I2C Address
-bool upButton;
-bool downButton;
+
+byte currentFloor;
+bool elevatorDirection;
 
 /* Slave Config */
-#define ANSWERSIZE 6 // Define Slave answer size
-int index; // Loop for reading
-char input[10]; // Input from master
-String answer = "Led on"; // Define string with response to Master
+const int floorAddress = 9; // Slave I2C Address
+#define ANSWERSIZE 2 // Define Slave answer size
+char input[2]; // Input from master
+
+
+
+
 
 /*-----------------------------------------------------------------------------------------------------*/
 /*- Functions -----------------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
-
-
 
 void setup() {
   /* Setup for pins */
@@ -70,11 +65,11 @@ void setup() {
   //changeFloor(floor);
 
   /* Checks if all buttons are available by the location of the elevator */
-  upButton = (localFloor < maxFloor) ? (true) : (false);
-  downButton = (localFloor > minFloor) ? (true) : (false);
+  buttonAvailable[0] = (localFloor > minFloor) ? (true) : (false);
+  buttonAvailable[1] = (localFloor < maxFloor) ? (true) : (false);
 
   /* I2C communication startup */
-  Wire.begin(SLAVE_ADDR); // Initialize I2C communications as Slave
+  Wire.begin(floorAddress); // Initialize I2C communications as Slave
   Wire.onRequest(requestEvent); // Function to run when data requested from master
   Wire.onReceive(receiveEvent); // Function to run when data received from master
 
@@ -86,75 +81,50 @@ void setup() {
 
 void receiveEvent() {
   // Read while data received
-  index = 0;
   while (0 < Wire.available()) {
-    input[index] = Wire.read(); // newFloor, direction, destination
-    index++;
+    currentFloor = (int)Wire.read();
+    elevatorDirection = (bool)Wire.read(); // 0 = down ,1 = up
+
+    while (0 < Wire.available()) { // Clear buffer
+      Wire.read();
+    }
   }
 
   Serial.println("Received data from master");
-
-  int newFloor = (int)input[0];
-  bool direction = (bool)input[1]; // 0 = down ,1 = up
-  int destination = (int)input[2];
-  Serial.println(newFloor);
-  Serial.println(direction);
-  Serial.println(destination);
+  Serial.println(currentFloor);
+  Serial.println(elevatorDirection);
 }
 
 
 void requestEvent() {
-  Wire.write(currentFloor);
-  Wire.write('2');
-  Wire.write('5');
+  Wire.write(reedState);
+  Wire.write(buttonState[0]);
+  Wire.write(buttonState[1]);
 }
 
 
 void loop() {
-  if (button(0)) {
-    buttonDownState = true;
+  if (button(0) && buttonAvailable[0]) {
+    buttonState[0] = true;
     digitalWrite(ledPin[0], HIGH);
   }
-  if (button(1)) {
-    buttonUpState = true;
+  if (button(1) && buttonAvailable[1]) {
+    buttonState[1] = true;
     digitalWrite(ledPin[1], HIGH);
   }
 
+  reedState = !digitalRead(reedPin);
 
-  // Time delay in loop
   delay(50);
 }
 
-void setDisplay (int curFloor) {
+
+
+void setDisplay (int number) {
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, segData[(curFloor - 1)]);
+  shiftOut(dataPin, clockPin, LSBFIRST, segData[(number)]);
   digitalWrite(latchPin, HIGH);
 }
-
-
-/*
-  void checkLocalFloor() {
-  if (!digitalRead(reedPin) && !reedState){
-    // Set State
-    reedState = true;
-    currentFloor = localFloor;
-
-    changeFloor(localFloor);
-  } else {
-    reedState = false;
-  }
-  }
-
-
-
-  void changeFloor(int newFloor){
-  if(minFloor > newFloor < maxFloor){//test if this works
-    currentFloor = newFloor;
-    setDisplay(currentFloor);
-  }
-  }*/
-
-
 
 boolean button(byte i)         // geeft DIRECT EENMALIG een '1' als knop i ingedrukt wordt
 { // knop i moet 50 ms los zijn voordat een nieuwe '1' gegeven kan worden
@@ -190,7 +160,7 @@ boolean button(byte i)         // geeft DIRECT EENMALIG een '1' als knop i inged
 /*-----------------------------------------------------------------------------------------------------*/
 
 /*
-  void segmentDisplayLoop() {
+  void segmentDisplayLoop() { // Test 7 segment display
   // loop from 0 to 9
   for (int num = 0; num < 10; num++)
   {
