@@ -5,9 +5,15 @@
 
 
 // Define Slave I2C Address
-const int floorAddress[5] = {9,10,11,12,13};
+const int floorAddress[5] = {9, 10, 11, 12, 13};
 // Define Slave answer size
 #define ANSWERSIZE 6
+
+/* Pins for 7-Segment Display */
+const int latchPin = 14; // Pin connected to ST_CP of 74HC595
+const int clockPin = 15; // Pin connected to SH_CP of 74HC595
+const int dataPin = 16; // Pin connected to DS of 74HC595
+byte 7segData[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
 
 //keypad
 const byte ROWS = 4;
@@ -28,9 +34,9 @@ Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
 
 
 // Array for receiving inputs
-bool inputButtonDown[5] = {0,0,0,0,0};
-bool inputButtonUp[5] = {0,0,0,0,0};
-bool inputDestinationFloor[5] = {0,0,0,0,0};
+bool inputButtonDown[5] = {0, 0, 0, 0, 0};
+bool inputButtonUp[5] = {0, 0, 0, 0, 0};
+bool inputDestinationFloor[5] = {0, 0, 0, 0, 0};
 
 int direction;
 int destinationFloor;
@@ -39,6 +45,10 @@ int currentFloor;
 
 
 void setup() {
+  // Setup for pins
+  pinMode(latchPin, OUTPUT);
+  pinMode(clockPin, OUTPUT);
+  pinMode(dataPin, OUTPUT);
   // Initialize I2C communications as Master
   Wire.begin();
   myStepper.setSpeed(700);
@@ -55,6 +65,7 @@ void loop() {
   //keypad
   char key = keypad.getKey();
   Serial.print(key);
+  // choose floor
   if (key == '1') {inputDestinationFloor[0] = 1; Serial.println("Going to floor 1!");}
     else if (key == '2') {inputDestinationFloor[1] = 1; Serial.println("Going to floor 2!");}
       else if (key == '3') {inputDestinationFloor[2] = 1; Serial.println("Going to floor 3!");}
@@ -67,7 +78,8 @@ void loop() {
 
   sendData();
   receiveData();
-  
+  setDisplay(currentFloor);
+  s
   delay(50);
 }
 
@@ -98,7 +110,7 @@ void receiveData() {
   Serial.println("Receiving done");
 }
 
-void printData(){
+void printData() {
   Serial.println("Send data:");
   for (int i = 0; i < 5; i++) {
     Serial.println("///////////////////////////////////////");
@@ -107,4 +119,10 @@ void printData(){
     Serial.println((String)"verdieping 5 down: " + inputButtonDown[i]);
   }
   Serial.println("Sending done");
+}
+
+void setDisplay (int curFloor) {
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, 7segData[(curFloor - 1)]);
+  digitalWrite(latchPin, HIGH);
 }
