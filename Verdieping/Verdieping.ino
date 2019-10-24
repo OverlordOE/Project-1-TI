@@ -38,7 +38,7 @@ byte maxFloor = 4; // Highest floor number
 byte currentFloor = 0; // Starting Floor number
 
 /* Local Config */
-byte localFloor = 2; // Floor number of local Floor
+const byte localFloor = 2; // Floor number of local Floor
 #define SLAVE_ADDR 9 // Slave I2C Address
 bool upButton;
 bool downButton;

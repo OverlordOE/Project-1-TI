@@ -3,64 +3,54 @@
 #include <Keypad.h>
 #include <Stepper.h>
 
-// Define Slave I2C Address
-#define VERD_1 9
-#define VERD_2 10
-#define VERD_3 11
-#define VERD_4 12
-#define VERD_5 13
 
+// Define Slave I2C Address
+const int floorAddress[5] = {9,10,11,12,13};
 // Define Slave answer size
 #define ANSWERSIZE 6
-
-// Array for receiving inputs
-char input1[10] = {};
-char input2[10] = {};
-char input3[10] = {};
-char input4[10] = {};
-char input5[10] = {};
-
-int index;
-int newState;
-int direction;
-int destination;
-int state;
-int upBut;
-int downBut;
-const int stepsPerRevolution = 32;
 
 //keypad
 const byte ROWS = 4;
 const byte COLS = 4;
-
 char keys[ROWS][COLS] = {
   {'1', '2', '3', 'A'},
   {'4', '5', '6', 'B'},
   {'7', '8', '9', 'C'},
   {'*', '0', '#', 'D'}
 };
-
 byte rowPins[ROWS] {13, 12, 11, 10};
 byte colPins[COLS] {9, 8, 7, 6};
-
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
 Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
+const int stepsPerRevolution = 32;
+
+
+// Array for receiving inputs
+bool inputButtonDown[5] = {0,0,0,0,0};
+bool inputButtonUp[5] = {0,0,0,0,0};
+bool inputDestinationFloor[5] = {0,0,0,0,0};
+
+int direction;
+int destinationFloor;
+int currentFloor;
+
+
 
 void setup() {
-
   // Initialize I2C communications as Master
   Wire.begin();
   myStepper.setSpeed(700);
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
-  newState = 3;
+  currentFloor = 3;
   direction = 1;
-  destination = 4;
+  destinationFloor = 4;
 }
 
+
 void loop() {
-  delay(50);
   //keypad
   char key = keypad.getKey();
   Serial.print(key);
@@ -68,103 +58,46 @@ void loop() {
   // Step one revolution in one direction:
   myStepper.step(stepsPerRevolution);
 
-  sendData(VERD_1, newState, direction, destination);
-  sendData(VERD_2, newState, direction, destination);
-  sendData(VERD_3, newState, direction, destination);
-  sendData(VERD_4, newState, direction, destination);
-  sendData(VERD_5, newState, direction, destination);
+  sendData();
+  receiveData();
+  
+  delay(50);
+}
 
+
+
+void sendData() {
+  for (int i = 0; i < 5; i++) {
+    Serial.println((String)"Transmission verieping " + floorAddress[i] + " started!");
+    Wire.beginTransmission(floorAddress[i]); //begin transmission
+    Wire.write(currentFloor);
+    Wire.write(direction);
+    Wire.write(destinationFloor);
+    Wire.endTransmission(); //end transmission
+    Serial.println((String)"Transmission verieping " + floorAddress[i] + " done!");
+  }
+}
+
+void receiveData() {
   Serial.println("Receive data:");
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  // Read response from Slave1
-  Wire.requestFrom(VERD_1, ANSWERSIZE);
-  index = 0;
-  while (Wire.available()) {
-    input1[index] = Wire.read();
-    index++;
+  for (int i = 0; i < 5; i++) {
+    Wire.requestFrom(floorAddress[i], ANSWERSIZE);
+    while (Wire.available()) {
+      inputButtonDown[i] = Wire.read();
+      inputButtonUp[i] = Wire.read();
+      inputDestinationFloor[i] = Wire.read();
+    }
   }
-  state = input1[0];
-  downBut = input1[1];
-  upBut = input1[2];
-  Serial.println("///////////////////////////////////////");
-  Serial.println((String)"verdieping 1 state: " + state);
-  Serial.println((String)"verdieping 1 up: " + upBut);
-  Serial.println((String)"verdieping 1 down: " + downBut);
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  // Read response from Slave2
-  Wire.requestFrom(VERD_2, ANSWERSIZE);
-  index = 0;
-  while (Wire.available()) {
-    input2[index] = Wire.read();
-    index++;
-  }
-  state = input2[0];
-  downBut = input2[1];
-  upBut = input2[2];
-  Serial.println("///////////////////////////////////////");
-  Serial.println((String)"verdieping 2 state: " + state);
-  Serial.println((String)"verdieping 2 up: " + upBut);
-  Serial.println((String)"verdieping 2 down: " + downBut);
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  // Read response from Slave3
-  Wire.requestFrom(VERD_3, ANSWERSIZE);
-  index = 0;
-  while (Wire.available()) {
-    input3[index] = Wire.read();
-    index++;
-  }
-  state = input3[0];
-  downBut = input3[1];
-  upBut = input3[2];
-  Serial.println("///////////////////////////////////////");
-  Serial.println((String)"verdieping 3 state: " + state);
-  Serial.println((String)"verdieping 3 up: " + upBut);
-  Serial.println((String)"verdieping 3 down: " + downBut);
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  // Read response from Slave4
-  Wire.requestFrom(VERD_4, ANSWERSIZE);
-  index = 0;
-  while (Wire.available()) {
-    input4[index] = Wire.read();
-    index++;
-  }
-  state = input4[0];
-  downBut = input4[1];
-  upBut = input4[2];
-  Serial.println("///////////////////////////////////////");
-  Serial.println((String)"verdieping 4 state: " + state);
-  Serial.println((String)"verdieping 4 up: " + upBut);
-  Serial.println((String)"verdieping 4 down: " + downBut);
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
-  // Read response from Slave5
-  Wire.requestFrom(VERD_5, ANSWERSIZE);
-  index = 0;
-  while (Wire.available()) {
-    input5[index] = Wire.read();
-    index++;
-  }
-  state = input5[0];
-  downBut = input5[1];
-  upBut = input5[2];
-  Serial.println("///////////////////////////////////////");
-  Serial.println((String)"verdieping 5 state: " + state);
-  Serial.println((String)"verdieping 5 up: " + upBut);
-  Serial.println((String)"verdieping 5 down: " + downBut);
-  Serial.println("///////////////////////////////////////");
-  ///////////////////////////////////////////////////////////////////////////////////////////////
   Serial.println("Receiving done");
 }
 
-void sendData(int verdieping, int newState, int direction, int destination) {
-  Serial.println((String)"Transmission verieping " + verdieping + " started!");
-  Wire.beginTransmission(verdieping); //begin transmission
-  Wire.write(newState);
-  Wire.write(direction);
-  Wire.write(destination);
-  Wire.endTransmission(); //end transmission
-  Serial.println((String)"Transmission verieping " + verdieping + " done!");
+void printData(){
+  Serial.println("Send data:");
+  for (int i = 0; i < 5; i++) {
+    Serial.println("///////////////////////////////////////");
+    Serial.println((String)"verdieping 5 currentFloor: " + inputDestinationFloor[i]);
+    Serial.println((String)"verdieping 5 up: " + inputButtonUp[i]);
+    Serial.println((String)"verdieping 5 down: " + inputButtonDown[i]);
+  }
+  Serial.println("Sending done");
 }
