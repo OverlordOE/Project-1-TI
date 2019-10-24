@@ -7,7 +7,7 @@
 // Define Slave I2C Address
 const int floorAddress[5] = {9, 10, 11, 12, 13};
 // Define Slave answer size
-#define ANSWERSIZE 6
+#define ANSWERSIZE 3
 
 /* Pins for 7-Segment Display */
 const int latchPin = 14; // Pin connected to ST_CP of 74HC595
@@ -38,7 +38,7 @@ bool inputButtonDown[5] = {0, 0, 0, 0, 0};
 bool inputButtonUp[5] = {0, 0, 0, 0, 0};
 bool inputDestinationFloor[5] = {0, 0, 0, 0, 0};
 
-int direction;
+bool elevatorDirection;
 int destinationFloor;
 int currentFloor;
 
@@ -55,9 +55,9 @@ void setup() {
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
-  currentFloor = 3;
-  direction = 1;
-  destinationFloor = 4;
+  currentFloor = 3; // Test
+  elevatorDirection = 1; // Test
+  destinationFloor = 4; // Test
 }
 
 
@@ -89,8 +89,7 @@ void sendData() {
     Serial.println((String)"Transmission verieping " + floorAddress[i] + " started!");
     Wire.beginTransmission(floorAddress[i]); //begin transmission
     Wire.write(currentFloor);
-    Wire.write(direction);
-    Wire.write(destinationFloor);
+    Wire.write(elevatorDirection);
     Wire.endTransmission(); //end transmission
     Serial.println((String)"Transmission verieping " + floorAddress[i] + " done!");
   }
@@ -101,9 +100,9 @@ void receiveData() {
   for (int i = 0; i < 5; i++) {
     Wire.requestFrom(floorAddress[i], ANSWERSIZE);
     while (Wire.available()) {
+      inputDestinationFloor[i] = Wire.read();
       inputButtonDown[i] = Wire.read();
       inputButtonUp[i] = Wire.read();
-      inputDestinationFloor[i] = Wire.read();
     }
   }
   Serial.println("Receiving done");
@@ -120,8 +119,8 @@ void printData() {
   Serial.println("Sending done");
 }
 
-void setDisplay (int curFloor) {
+void setDisplay (int number) {
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, segData[(curFloor - 1)]);
+  shiftOut(dataPin, clockPin, LSBFIRST, segData[number]);
   digitalWrite(latchPin, HIGH);
 }
