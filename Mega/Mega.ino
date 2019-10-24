@@ -13,7 +13,7 @@ const int floorAddress[5] = {9, 10, 11, 12, 13};
 const int latchPin = 14; // Pin connected to ST_CP of 74HC595
 const int clockPin = 15; // Pin connected to SH_CP of 74HC595
 const int dataPin = 16; // Pin connected to DS of 74HC595
-byte 7segData[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
+byte segData[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
 
 //keypad
 const byte ROWS = 4;
@@ -64,7 +64,6 @@ void setup() {
 void loop() {
   //keypad
   char key = keypad.getKey();
-  Serial.print(key);
   // choose floor
   if (key == '1') {inputDestinationFloor[0] = 1; Serial.println("Going to floor 1!");}
     else if (key == '2') {inputDestinationFloor[1] = 1; Serial.println("Going to floor 2!");}
@@ -79,7 +78,7 @@ void loop() {
   sendData();
   receiveData();
   setDisplay(currentFloor);
-  s
+  
   delay(50);
 }
 
@@ -123,6 +122,6 @@ void printData() {
 
 void setDisplay (int curFloor) {
   digitalWrite(latchPin, LOW);
-  shiftOut(dataPin, clockPin, LSBFIRST, 7segData[(curFloor - 1)]);
+  shiftOut(dataPin, clockPin, LSBFIRST, segData[(curFloor - 1)]);
   digitalWrite(latchPin, HIGH);
 }
