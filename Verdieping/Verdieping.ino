@@ -11,7 +11,7 @@
 const int latchPin = 12; // Pin connected to ST_CP of 74HC595
 const int clockPin = 8; // Pin connected to SH_CP of 74HC595
 const int dataPin = 11; // Pin connected to DS of 74HC595
-byte datArray[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
+byte 7segData[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
 
 /* Pins for REED */
 const byte reedPin = 2;
@@ -125,9 +125,15 @@ void loop() {
   delay(50);
 }
 
+void setDisplay (int curFloor) {
+  digitalWrite(latchPin, LOW);
+  shiftOut(dataPin, clockPin, LSBFIRST, 7segData[(curFloor - 1)]);
+  digitalWrite(latchPin, HIGH);
+}
+
 
 /*
-void checkLocalFloor() {
+  void checkLocalFloor() {
   if (!digitalRead(reedPin) && !reedState){
     // Set State
     reedState = true;
@@ -137,18 +143,16 @@ void checkLocalFloor() {
   } else {
     reedState = false;
   }
-}
+  }
 
 
 
-void changeFloor(int newFloor){
+  void changeFloor(int newFloor){
   if(minFloor > newFloor < maxFloor){//test if this works
     currentFloor = newFloor;
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, datArray[++currentFloor]);
-    digitalWrite(latchPin, HIGH);
+    setDisplay(currentFloor);
   }
-}*/
+  }*/
 
 
 
@@ -180,18 +184,19 @@ boolean button(byte i)         // geeft DIRECT EENMALIG een '1' als knop i inged
 
 
 
+
 /*-----------------------------------------------------------------------------------------------------*/
 /*- Unused Functions ----------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
 
 /*
-void segmentDisplayLoop() {
+  void segmentDisplayLoop() {
   // loop from 0 to 9
   for (int num = 0; num < 10; num++)
   {
     digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, datArray[num]);
+    shiftOut(dataPin, clockPin, LSBFIRST, 7segData[num]);
     digitalWrite(latchPin, HIGH);
     delay(1000); //wait for a second
   }
-}*/
+  }*/
