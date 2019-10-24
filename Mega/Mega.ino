@@ -22,8 +22,9 @@ byte rowPins[ROWS] {13, 12, 11, 10};
 byte colPins[COLS] {9, 8, 7, 6};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
-Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
 const int stepsPerRevolution = 32;
+Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
+
 
 
 // Array for receiving inputs
@@ -54,6 +55,12 @@ void loop() {
   //keypad
   char key = keypad.getKey();
   Serial.print(key);
+  if (key == '1') {inputDestinationFloor[0] = 1; Serial.println("Going to floor 1!");}
+    else if (key == '2') {inputDestinationFloor[1] = 1; Serial.println("Going to floor 2!");}
+      else if (key == '3') {inputDestinationFloor[2] = 1; Serial.println("Going to floor 3!");}
+        else if (key == '4') {inputDestinationFloor[3] = 1; Serial.println("Going to floor 4!");}
+          else if (key == '5') {inputDestinationFloor[4] = 1; Serial.println("Going to floor 5!");}
+            else {Serial.println("Key not recognized");}
 
   // Step one revolution in one direction:
   myStepper.step(stepsPerRevolution);
