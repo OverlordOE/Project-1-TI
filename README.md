@@ -1,7 +1,6 @@
 # Project-TI
 ======
 Project 1: lift
-------
 
 ##Inleiding
 ======
