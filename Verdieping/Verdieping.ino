@@ -24,6 +24,7 @@ bool buttonState[2] = {false, false};
 
 /* pins for leds */
 const byte ledPin[] = {5, 6};
+const byte liftDoorLedPin = 13;
 
 /*-----------------------------------------------------------------------------------------------------*/
 /*- Config --------------------------------------------------------------------------------------------*/
@@ -36,6 +37,8 @@ const byte localFloor = 2; // Floor number of local Floor
 
 byte currentFloor;
 bool elevatorDirection;
+
+byte displayNumber;
 
 /* Slave Config */
 const int floorAddress = 9; // Slave I2C Address
@@ -60,9 +63,8 @@ void setup() {
 
   for (byte i = 0; i < sizeof(buttonPin); i++) pinMode(buttonPin[i], INPUT_PULLUP);
   for (byte i = 0; i < sizeof(ledPin); i++) pinMode(ledPin[i], OUTPUT);
+  pinMode(liftDoorLedPin, OUTPUT);
 
-  /* Set on default floor */
-  //changeFloor(floor);
 
   /* Checks if all buttons are available by the location of the elevator */
   buttonAvailable[0] = (localFloor > minFloor) ? (true) : (false);
@@ -77,6 +79,40 @@ void setup() {
   Serial.begin(9600);
   Serial.println((String)"Floor: " + localFloor + " Online!");
 }
+
+
+
+void loop() {
+  if (button(0) && buttonAvailable[0]) { // Turn LEDs on when the button is pressed
+    buttonState[0] = true;
+    digitalWrite(ledPin[0], HIGH);
+  }
+  if (button(1) && buttonAvailable[1]) {
+    buttonState[1] = true;
+    digitalWrite(ledPin[1], HIGH);
+  }
+
+  reedState = !digitalRead(reedPin);
+
+
+  if (currentFloor == localFloor){ // Turn LEDs off
+    buttonState[elevatorDirection] = false;
+    digitalWrite(ledPin[elevatorDirection], LOW);
+    // Lift door open???
+  }
+
+  // Lift door code !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  //digitalWrite(liftDoorLedPin, HIGH); // Door open
+  //digitalWrite(liftDoorLedPin, LOW); // Door closed
+
+  if(currentFloor != displayNumber){ // Only update the 7 segment display when the currentFloor changes
+    setDisplay(currentFloor);
+    displayNumber = currentFloor;
+  }
+
+  delay(50);
+}
+
 
 
 void receiveEvent() {
@@ -94,8 +130,6 @@ void receiveEvent() {
   Serial.println(currentFloor);
   Serial.println(elevatorDirection);
 }
-
-
 void requestEvent() {
   Wire.write(reedState);
   Wire.write(buttonState[0]);
@@ -103,24 +137,8 @@ void requestEvent() {
 }
 
 
-void loop() {
-  if (button(0) && buttonAvailable[0]) {
-    buttonState[0] = true;
-    digitalWrite(ledPin[0], HIGH);
-  }
-  if (button(1) && buttonAvailable[1]) {
-    buttonState[1] = true;
-    digitalWrite(ledPin[1], HIGH);
-  }
 
-  reedState = !digitalRead(reedPin);
-
-  delay(50);
-}
-
-
-
-void setDisplay (int number) {
+void setDisplay(int number) {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, segData[(number)]);
   digitalWrite(latchPin, HIGH);
@@ -149,24 +167,3 @@ boolean button(byte i)         // geeft DIRECT EENMALIG een '1' als knop i inged
   }
   return (0);
 }
-
-
-
-
-
-
-/*-----------------------------------------------------------------------------------------------------*/
-/*- Unused Functions ----------------------------------------------------------------------------------*/
-/*-----------------------------------------------------------------------------------------------------*/
-
-/*
-  void segmentDisplayLoop() { // Test 7 segment display
-  // loop from 0 to 9
-  for (int num = 0; num < 10; num++)
-  {
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, segData[num]);
-    digitalWrite(latchPin, HIGH);
-    delay(1000); //wait for a second
-  }
-  }*/
