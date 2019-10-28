@@ -24,8 +24,8 @@ char keys[ROWS][COLS] = {
   {'7', '8', '9', 'C'},
   {'*', '0', '#', 'D'}
 };
-byte rowPins[ROWS] {13, 12, 11, 10};
-byte colPins[COLS] {9, 8, 7, 6};
+byte rowPins[ROWS] {37, 35, 33, 31};
+byte colPins[COLS] {29, 27, 25, 23};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 const int stepsPerRevolution = 32;
@@ -66,14 +66,16 @@ void loop() {
   char key = keypad.getKey();
   // choose floor
   if (key == '1') {inputDestinationFloor[0] = 1; Serial.println("Going to floor 1!");}
-    else if (key == '2') {inputDestinationFloor[1] = 1; Serial.println("Going to floor 2!");}
-      else if (key == '3') {inputDestinationFloor[2] = 1; Serial.println("Going to floor 3!");}
-        else if (key == '4') {inputDestinationFloor[3] = 1; Serial.println("Going to floor 4!");}
-          else if (key == '5') {inputDestinationFloor[4] = 1; Serial.println("Going to floor 5!");}
-            else {Serial.println("Key not recognized");}
+  else if (key == '2') {inputDestinationFloor[1] = 1; Serial.println("Going to floor 2!");}
+  else if (key == '3') {inputDestinationFloor[2] = 1; Serial.println("Going to floor 3!");}
+  else if (key == '4') {inputDestinationFloor[3] = 1; Serial.println("Going to floor 4!");}
+  else if (key == '5') {inputDestinationFloor[4] = 1; Serial.println("Going to floor 5!");}
+  else {Serial.println("Key not recognized");}
 
-  // Step one revolution in one direction:
-  myStepper.step(stepsPerRevolution);
+
+  // Function to use the motor
+  //useMotor(direction);
+  
 
   sendData();
   receiveData();
@@ -123,4 +125,15 @@ void setDisplay (int number) {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, segData[number]);
   digitalWrite(latchPin, HIGH);
+}
+
+void useMotor(bool goUp){ // 0 = Down, 1 = Up
+  // Step one revolution in one direction:
+  myStepper.step(stepsPerRevolution);
+  if (goUp){ // Up
+    myStepper.step(-stepsPerRevolution);
+  }
+  else { // Down
+    myStepper.step(stepsPerRevolution);
+  }
 }
