@@ -50,14 +50,11 @@ void setup() {
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
   // Initialize I2C communications as Master
-  //Wire.begin();
+  Wire.begin();
   myStepper.setSpeed(700);
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
-  currentFloor = 3; // Test
-  elevatorDirection = 1; // Test
-  destinationFloor = 4; // Test
 }
 
 
@@ -66,7 +63,7 @@ void loop() {
   char key = keypad.getKey();
   // choose floor
   if (key == '1') {inputDestinationFloor[0] = 1; Serial.println("Going to floor 1!");}
-  else if (key == '2') {inputDestinationFloor[0] = 0; Serial.println("Going to floor 2!");} // !!!!!!!!!!!!
+  else if (key == '2') {inputDestinationFloor[1] = 1; Serial.println("Going to floor 2!");}
   else if (key == '3') {inputDestinationFloor[2] = 1; Serial.println("Going to floor 3!");}
   else if (key == '4') {inputDestinationFloor[3] = 1; Serial.println("Going to floor 4!");}
   else if (key == '5') {inputDestinationFloor[4] = 1; Serial.println("Going to floor 5!");}
@@ -74,11 +71,11 @@ void loop() {
 
 
   // Function to use the motor
-  useMotor(inputDestinationFloor[0]);
+  //useMotor(bool);
   
 
-  //sendData();
-  //receiveData();
+  sendData();
+  receiveData();
   setDisplay(currentFloor);
   delay(50);
   
