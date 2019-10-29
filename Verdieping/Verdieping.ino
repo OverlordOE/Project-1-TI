@@ -33,7 +33,7 @@ const byte liftDoorLedPin = 13;
 /* Elevator Config */
 const byte minFloor = 0; // Lowest floor number
 const byte maxFloor = 4; // Highest floor number
-const byte localFloor = 2; // Floor number of local Floor
+const byte localFloor = 4; // Floor number of local Floor
 
 byte currentFloor;
 bool elevatorDirection;
