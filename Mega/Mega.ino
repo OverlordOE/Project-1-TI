@@ -24,8 +24,8 @@ char keys[ROWS][COLS] = {
   {'7', '8', '9', 'C'},
   {'*', '0', '#', 'D'}
 };
-byte rowPins[ROWS] {37, 35, 33, 31};
-byte colPins[COLS] {29, 27, 25, 23};
+byte rowPins[ROWS] {27, 29, 31, 33};
+byte colPins[COLS] {35, 37, 39, 41};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 const int stepsPerRevolution = 32;
@@ -55,9 +55,6 @@ void setup() {
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
-  currentFloor = 3; // Test
-  elevatorDirection = 1; // Test
-  destinationFloor = 4; // Test
 }
 
 
@@ -74,14 +71,14 @@ void loop() {
 
 
   // Function to use the motor
-  //useMotor(direction);
+  //useMotor(bool);
   
 
   sendData();
   receiveData();
   setDisplay(currentFloor);
-  
   delay(50);
+  
 }
 
 
