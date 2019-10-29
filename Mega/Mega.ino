@@ -55,6 +55,7 @@ void setup() {
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
+  currentFloor = 0;
 }
 
 
@@ -62,17 +63,23 @@ void loop() {
   //keypad
   char key = keypad.getKey();
   // choose floor
-  if (key == '1') {inputDestinationFloor[0] = 1; Serial.println("Going to floor 1!");}
-  else if (key == '2') {inputDestinationFloor[1] = 1; Serial.println("Going to floor 2!");}
-  else if (key == '3') {inputDestinationFloor[2] = 1; Serial.println("Going to floor 3!");}
-  else if (key == '4') {inputDestinationFloor[3] = 1; Serial.println("Going to floor 4!");}
-  else if (key == '5') {inputDestinationFloor[4] = 1; Serial.println("Going to floor 5!");}
-  else {Serial.println("Key not recognized");}
+  if (key == '1') {inputDestinationFloor[0] = 1;}
+  else if (key == '2') {inputDestinationFloor[0] = 0;}
+  else if (key == '3') {inputDestinationFloor[2] = 1;}
+  else if (key == '4') {inputDestinationFloor[3] = 1;}
+  else if (key == '5') {inputDestinationFloor[4] = 1;}
 
+  if (key == 'A') {myStepper.setSpeed(100);}
+  else if (key == 'B') {myStepper.setSpeed(300);}
+  else if (key == 'C') {myStepper.setSpeed(500);}
+  else if (key == 'D') {myStepper.setSpeed(700);}
 
+  Serial.println(inputDestinationFloor[0]);
   // Function to use the motor
-  //useMotor(bool);
   
+  useMotor(inputDestinationFloor[0]);
+  currentFloor++;
+  if (currentFloor > 4) {currentFloor=0;}
 
   sendData();
   receiveData();
@@ -85,12 +92,12 @@ void loop() {
 
 void sendData() {
   for (int i = 0; i < 5; i++) {
-    Serial.println((String)"Transmission verieping " + floorAddress[i] + " started!");
+    //Serial.println((String)"Transmission verieping " + floorAddress[i] + " started!");
     Wire.beginTransmission(floorAddress[i]); //begin transmission
     Wire.write(currentFloor);
     Wire.write(elevatorDirection);
     Wire.endTransmission(); //end transmission
-    Serial.println((String)"Transmission verieping " + floorAddress[i] + " done!");
+    //Serial.println((String)"Transmission verieping " + floorAddress[i] + " done!");
   }
 }
 
@@ -99,7 +106,7 @@ void receiveData() {
   for (int i = 0; i < 5; i++) {
     Wire.requestFrom(floorAddress[i], ANSWERSIZE);
     while (Wire.available()) {
-      inputDestinationFloor[i] = Wire.read();
+      //inputDestinationFloor[i] = Wire.read();
       inputButtonDown[i] = Wire.read();
       inputButtonUp[i] = Wire.read();
     }
@@ -111,9 +118,9 @@ void printData() {
   Serial.println("Send data:");
   for (int i = 0; i < 5; i++) {
     Serial.println("///////////////////////////////////////");
-    Serial.println((String)"verdieping 5 currentFloor: " + inputDestinationFloor[i]);
-    Serial.println((String)"verdieping 5 up: " + inputButtonUp[i]);
-    Serial.println((String)"verdieping 5 down: " + inputButtonDown[i]);
+    Serial.println((String)"verdieping "+i+" currentFloor: " + inputDestinationFloor[i]);
+    Serial.println((String)"verdieping "+i+" up: " + inputButtonUp[i]);
+    Serial.println((String)"verdieping "+i+" down: " + inputButtonDown[i]);
   }
   Serial.println("Sending done");
 }
@@ -126,7 +133,6 @@ void setDisplay (int number) {
 
 void useMotor(bool goUp){ // 0 = Down, 1 = Up
   // Step one revolution in one direction:
-  myStepper.step(stepsPerRevolution);
   if (goUp){ // Up
     myStepper.step(-stepsPerRevolution);
   }
