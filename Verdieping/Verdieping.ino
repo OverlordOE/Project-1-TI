@@ -78,7 +78,6 @@ void setup() {
 }
 
 
-
 void loop() {
   if (button(0) && buttonAvailable[0]) { // Turn LEDs on when the button is pressed
     buttonState[0] = true;
@@ -90,9 +89,9 @@ void loop() {
   }
 
   reedState = !digitalRead(reedPin);
+  
 
-  if (reedState){
-    currentFloor = localFloor;
+  if (currentFloor == localFloor){ // Turn LEDs off
     buttonState[elevatorDirection] = false;
     digitalWrite(ledPin[elevatorDirection], LOW);
     // Lift door open???
