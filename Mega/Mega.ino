@@ -10,10 +10,11 @@ const int floorAddress[5] = {9, 10, 11, 12, 13};
 #define ANSWERSIZE 3
 
 /* Pins for 7-Segment Display */
-const int latchPin = 14; // Pin connected to ST_CP of 74HC595
-const int clockPin = 15; // Pin connected to SH_CP of 74HC595
-const int dataPin = 16; // Pin connected to DS of 74HC595
+const int latchPin = 12; // Pin connected to ST_CP of 74HC595
+const int clockPin = 8; // Pin connected to SH_CP of 74HC595
+const int dataPin = 11; // Pin connected to DS of 74HC595
 byte segData[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
+
 
 //keypad
 const byte ROWS = 4;
@@ -28,15 +29,16 @@ byte rowPins[ROWS] {27, 29, 31, 33};
 byte colPins[COLS] {35, 37, 39, 41};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
+
+//motor
 const int stepsPerRevolution = 32;
 Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
-
 
 
 // Array for receiving inputs
 bool inputButtonDown[5] = {0, 0, 0, 0, 0};
 bool inputButtonUp[5] = {0, 0, 0, 0, 0};
-bool inputDestinationFloor[5] = {0, 0, 0, 0, 0};
+int inputDestinationFloor[5] = {2, 0, 0, 0, 0};
 
 bool elevatorDirection;
 int destinationFloor;
@@ -49,81 +51,70 @@ void setup() {
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin, OUTPUT);
-  // Initialize I2C communications as Master
-  Wire.begin();
-  myStepper.setSpeed(700);
+
   // Setup serial monitor
   Serial.begin(9600);
   Serial.println("Lift Master");
+
   currentFloor = 0;
+  Wire.begin();
+  myStepper.setSpeed(100);
 }
 
 
+
 void loop() {
-  //keypad
   char key = keypad.getKey();
+  
   // choose floor
   if (key == '1') {inputDestinationFloor[0] = 1;}
   else if (key == '2') {inputDestinationFloor[0] = 0;}
-  else if (key == '3') {inputDestinationFloor[2] = 1;}
+  else if (key == '3') {inputDestinationFloor[0] = 2;}
   else if (key == '4') {inputDestinationFloor[3] = 1;}
   else if (key == '5') {inputDestinationFloor[4] = 1;}
-
+  
+  //choose speed
   if (key == 'A') {myStepper.setSpeed(100);}
   else if (key == 'B') {myStepper.setSpeed(300);}
   else if (key == 'C') {myStepper.setSpeed(500);}
-  else if (key == 'D') {myStepper.setSpeed(700);}
 
-  Serial.println(inputDestinationFloor[0]);
-  // Function to use the motor
-  
   useMotor(inputDestinationFloor[0]);
-  currentFloor++;
-  if (currentFloor > 4) {currentFloor=0;}
+  
+  //7Seg test  
+ // currentFloor++;
+ // if (currentFloor > 4) {currentFloor=0;}
 
   sendData();
   receiveData();
   setDisplay(currentFloor);
   delay(50);
-  
 }
 
 
 
 void sendData() {
   for (int i = 0; i < 5; i++) {
-    //Serial.println((String)"Transmission verieping " + floorAddress[i] + " started!");
     Wire.beginTransmission(floorAddress[i]); //begin transmission
     Wire.write(currentFloor);
     Wire.write(elevatorDirection);
     Wire.endTransmission(); //end transmission
-    //Serial.println((String)"Transmission verieping " + floorAddress[i] + " done!");
   }
 }
 
+
+
 void receiveData() {
-  Serial.println("Receive data:");
   for (int i = 0; i < 5; i++) {
     Wire.requestFrom(floorAddress[i], ANSWERSIZE);
     while (Wire.available()) {
-      //inputDestinationFloor[i] = Wire.read();
+      currentFloor = Wire.read();
       inputButtonDown[i] = Wire.read();
       inputButtonUp[i] = Wire.read();
     }
   }
-  Serial.println("Receiving done");
 }
 
-void printData() {
-  Serial.println("Send data:");
-  for (int i = 0; i < 5; i++) {
-    Serial.println("///////////////////////////////////////");
-    Serial.println((String)"verdieping "+i+" currentFloor: " + inputDestinationFloor[i]);
-    Serial.println((String)"verdieping "+i+" up: " + inputButtonUp[i]);
-    Serial.println((String)"verdieping "+i+" down: " + inputButtonDown[i]);
-  }
-  Serial.println("Sending done");
-}
+
 
 void setDisplay (int number) {
   digitalWrite(latchPin, LOW);
@@ -131,12 +122,14 @@ void setDisplay (int number) {
   digitalWrite(latchPin, HIGH);
 }
 
-void useMotor(bool goUp){ // 0 = Down, 1 = Up
+
+
+void useMotor(int goUp){ // 0 = Down, 1 = Up
   // Step one revolution in one direction:
-  if (goUp){ // Up
+  if (goUp == 1){ // Up
     myStepper.step(-stepsPerRevolution);
   }
-  else { // Down
+  else if (goUp == 0) { // Down
     myStepper.step(stepsPerRevolution);
-  }
+  }else {}
 }
