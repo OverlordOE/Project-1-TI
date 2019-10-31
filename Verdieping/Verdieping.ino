@@ -46,9 +46,6 @@ const int floorAddress = 9; // Slave I2C Address
 char input[2]; // Input from master
 
 
-
-
-
 /*-----------------------------------------------------------------------------------------------------*/
 /*- Functions -----------------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------------*/
@@ -81,7 +78,6 @@ void setup() {
 }
 
 
-
 void loop() {
   if (button(0) && buttonAvailable[0]) { // Turn LEDs on when the button is pressed
     buttonState[0] = true;
@@ -93,7 +89,7 @@ void loop() {
   }
 
   reedState = !digitalRead(reedPin);
-
+  
 
   if (currentFloor == localFloor){ // Turn LEDs off
     buttonState[elevatorDirection] = false;
@@ -125,11 +121,10 @@ void receiveEvent() {
       Wire.read();
     }
   }
-
-  Serial.println("Received data from master");
-  Serial.println(currentFloor);
-  Serial.println(elevatorDirection);
 }
+
+
+
 void requestEvent() {
   Wire.write(reedState);
   Wire.write(buttonState[0]);
@@ -143,6 +138,8 @@ void setDisplay(int number) {
   shiftOut(dataPin, clockPin, LSBFIRST, segData[(number)]);
   digitalWrite(latchPin, HIGH);
 }
+
+
 
 boolean button(byte i)         // geeft DIRECT EENMALIG een '1' als knop i ingedrukt wordt
 { // knop i moet 50 ms los zijn voordat een nieuwe '1' gegeven kan worden
