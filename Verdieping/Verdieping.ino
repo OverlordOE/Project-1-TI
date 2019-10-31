@@ -31,9 +31,10 @@ const byte liftDoorLedPin = 13;
 /*-----------------------------------------------------------------------------------------------------*/
 
 /* Elevator Config */
+const int floor = 0;
 const byte minFloor = 0; // Lowest floor number
 const byte maxFloor = 4; // Highest floor number
-const byte localFloor = 4; // Floor number of local Floor
+const byte localFloor[5] = {0,1,2,3,4}; // Floor number of local Floor
 
 byte currentFloor;
 bool elevatorDirection;
@@ -41,7 +42,7 @@ bool elevatorDirection;
 byte displayNumber;
 
 /* Slave Config */
-const int floorAddress = 9; // Slave I2C Address
+const int floorAddress[5] = {9,10,11,12,13}; // Slave I2C Address 9t/m13
 #define ANSWERSIZE 2 // Define Slave answer size
 char input[2]; // Input from master
 
@@ -64,17 +65,17 @@ void setup() {
 
 
   /* Checks if all buttons are available by the location of the elevator */
-  buttonAvailable[0] = (localFloor > minFloor) ? (true) : (false);
-  buttonAvailable[1] = (localFloor < maxFloor) ? (true) : (false);
+  buttonAvailable[0] = (localFloor[floor] > minFloor) ? (true) : (false);
+  buttonAvailable[1] = (localFloor[floor] < maxFloor) ? (true) : (false);
 
   /* I2C communication startup */
-  Wire.begin(floorAddress); // Initialize I2C communications as Slave
+  Wire.begin(floorAddress[floor]); // Initialize I2C communications as Slave
   Wire.onRequest(requestEvent); // Function to run when data requested from master
   Wire.onReceive(receiveEvent); // Function to run when data received from master
 
   /* Setup Serial Monitor */
   Serial.begin(9600);
-  Serial.println((String)"Floor: " + localFloor + " Online!");
+  Serial.println((String)"Floor: " + localFloor[floor] + " Online!");
 }
 
 
@@ -89,17 +90,14 @@ void loop() {
   }
 
   reedState = !digitalRead(reedPin);
-  
+  if (reedState) {digitalWrite(liftDoorLedPin, HIGH);
+    } else {digitalWrite(liftDoorLedPin, LOW);}  
 
-  if (currentFloor == localFloor){ // Turn LEDs off
+  if (currentFloor == localFloor[floor]){ // Turn LEDs off
     buttonState[elevatorDirection] = false;
     digitalWrite(ledPin[elevatorDirection], LOW);
     // Lift door open???
   }
-
-  // Lift door code !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //digitalWrite(liftDoorLedPin, HIGH); // Door open
-  //digitalWrite(liftDoorLedPin, LOW); // Door closed
 
   if(currentFloor != displayNumber){ // Only update the 7 segment display when the currentFloor changes
     setDisplay(currentFloor);
@@ -116,10 +114,6 @@ void receiveEvent() {
   while (0 < Wire.available()) {
     currentFloor = (int)Wire.read();
     elevatorDirection = (bool)Wire.read(); // 0 = down ,1 = up
-
-    while (0 < Wire.available()) { // Clear buffer
-      Wire.read();
-    }
   }
 }
 

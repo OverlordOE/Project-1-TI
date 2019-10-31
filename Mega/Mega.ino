@@ -81,7 +81,7 @@ void loop() {
   useMotor(inputDestinationFloor[0]);
   
   //7Seg test  
-  currentFloor++;
+  //currentFloor++;
   if (currentFloor > 4) {currentFloor=0;}
 
   sendData();
@@ -107,7 +107,7 @@ void receiveData() {
   for (int i = 0; i < 5; i++) {
     Wire.requestFrom(floorAddress[i], ANSWERSIZE);
     while (Wire.available()) {
-      inputDestinationFloor[i] = Wire.read();
+      if (Wire.read()) {currentFloor = i;}
       inputButtonDown[i] = Wire.read();
       inputButtonUp[i] = Wire.read();
     }
