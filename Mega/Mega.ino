@@ -107,7 +107,7 @@ void receiveData() {
   for (int i = 0; i < 5; i++) {
     Wire.requestFrom(floorAddress[i], ANSWERSIZE);
     while (Wire.available()) {
-      //inputDestinationFloor[i] = Wire.read();
+      inputDestinationFloor[i] = Wire.read();
       inputButtonDown[i] = Wire.read();
       inputButtonUp[i] = Wire.read();
     }
