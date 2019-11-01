@@ -103,7 +103,7 @@ void loop() {
     bool noNext = true;
     if(currentFloor < 4){
       for (int i = currentFloor+1; i < 5; i++) {
-        if (inputDestinationFloor[i] == true){
+        if (inputDestinationFloor[i] == true || inputButtonUp[i] == true){
           Serial.println("test1");
           destinationFloor = i;
           noNext = false;
@@ -119,7 +119,7 @@ void loop() {
     bool noNext = true;
     if(currentFloor > 0){
       for (int i = currentFloor-1; i >= 0; i--) {
-        if (inputDestinationFloor[i] == true){
+        if (inputDestinationFloor[i] == true || inputButtonDown[i] == true){
           Serial.println("test2");
           destinationFloor = i;
           noNext = false;
