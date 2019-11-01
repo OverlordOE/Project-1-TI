@@ -97,14 +97,24 @@ void loop() {
   // elevatorDirection
   // destinationFloor
 
-
+  sendData();
 
   if (elevatorDirection){
     bool noNext = true;
+    inputButtonUp[currentFloor] = 0;  
     if(currentFloor < 4){
       for (int i = currentFloor+1; i < 5; i++) {
-        if (inputDestinationFloor[i] == true){
+        if (inputDestinationFloor[i] == true || inputButtonUp[i] == true){
           Serial.println("test1");
+          destinationFloor = i;
+          noNext = false;        
+          break;
+        }
+      }
+    }
+    if(noNext){
+      for (int i = currentFloor+1; i < 5; i++) {
+        if (inputButtonDown[i] == true){
           destinationFloor = i;
           noNext = false;
           break;
@@ -117,10 +127,22 @@ void loop() {
     }
   } else {
     bool noNext = true;
+    inputButtonDown[currentFloor] = 0;
     if(currentFloor > 0){
       for (int i = currentFloor-1; i >= 0; i--) {
-        if (inputDestinationFloor[i] == true){
+        if (inputDestinationFloor[i] == true || inputButtonDown[i] == true){
           Serial.println("test2");
+          destinationFloor = i;
+          noNext = false;
+          break;
+
+        
+        }
+      }
+    }
+    if(noNext){
+      for (int i = currentFloor-1; i >= 0; i--) {
+        if (inputButtonUp[i] == true){
           destinationFloor = i;
           noNext = false;
           break;
@@ -146,17 +168,8 @@ void loop() {
     Serial.print(inputDestinationFloor[i]);
     Serial.print(" ");
   }
-  Serial.println("");
 
-  Serial.print(currentFloor);
-  Serial.print("    ");
-  Serial.print(elevatorDirection);
-  Serial.print("    ");
-  Serial.println(destinationFloor);
 
-  
-
-  sendData();
   receiveData();
   setDisplay(currentFloor);
   delay(50);
@@ -182,6 +195,8 @@ void receiveData() {
       if (Wire.read()) {
         currentFloor = i;
         inputDestinationFloor[currentFloor] = false;
+        if (!elevatorDirection){inputButtonUp[currentFloor] = 0;}
+        else if (elevatorDirection) {inputButtonDown[currentFloor] = 0;}
         }
       inputButtonDown[i] = Wire.read();
       inputButtonUp[i] = Wire.read();
