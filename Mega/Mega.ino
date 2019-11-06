@@ -10,9 +10,9 @@ const int floorAddress[5] = {9, 10, 11, 12, 13};
 #define ANSWERSIZE 3
 
 /* Pins for 7-Segment Display */
-const int latchPin = 12; // Pin connected to ST_CP of 74HC595
-const int clockPin = 8; // Pin connected to SH_CP of 74HC595
-const int dataPin = 11; // Pin connected to DS of 74HC595
+const byte latchPin = 12; // Pin connected to ST_CP of 74HC595
+const byte clockPin = 8; // Pin connected to SH_CP of 74HC595
+const byte dataPin = 11; // Pin connected to DS of 74HC595
 byte segData[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
 
 
@@ -41,11 +41,13 @@ bool inputButtonUp[5] = {0, 0, 0, 0, 0};
 bool inputDestinationFloor[5] = {0, 0, 0, 0, 0};
 
 bool elevatorDirection;
-int destinationFloor;
-int currentFloor;
+byte destinationFloor;
+byte currentFloor;
 
 
-int motorDir = 2; // Testing
+//byte motorDir = 2; // Testing
+
+bool delayOnce = true;
 
 
 
@@ -69,16 +71,16 @@ void loop() {
   char key = keypad.getKey();
   
   // choose floor
-  if (key == '1') {inputDestinationFloor[0] = 1;}
-  if (key == '2') {inputDestinationFloor[1] = 1;}
-  if (key == '3') {inputDestinationFloor[2] = 1;}
-  if (key == '4') {inputDestinationFloor[3] = 1;}
-  if (key == '5') {inputDestinationFloor[4] = 1;}
+  if (key == '0') {inputDestinationFloor[0] = true;}
+  if (key == '1') {inputDestinationFloor[1] = true;}
+  if (key == '2') {inputDestinationFloor[2] = true;}
+  if (key == '3') {inputDestinationFloor[3] = true;}
+  if (key == '4') {inputDestinationFloor[4] = true;}
   
   //choose speed
-  if (key == '*') {motorDir = 0;}
-  if (key == '0') {motorDir = 2;}
-  if (key == '#') {motorDir = 1;}
+  //if (key == '*') {motorDir = 0;}
+  //if (key == '0') {motorDir = 2;}
+  //if (key == '#') {motorDir = 1;}
   if (key == 'A') {myStepper.setSpeed(100);}
   if (key == 'B') {myStepper.setSpeed(300);}
   if (key == 'C') {myStepper.setSpeed(500);}
@@ -88,24 +90,15 @@ void loop() {
   //currentFloor++;
   //if (currentFloor > 4) {currentFloor=0;}
 
-
-
-  // inputButtonDown
-  // inputButtonUp
-  // inputDestinationFloor
-
-  // elevatorDirection
-  // destinationFloor
-
   sendData();
 
   if (elevatorDirection){
     bool noNext = true;
     inputButtonUp[currentFloor] = 0;  
     if(currentFloor < 4){
-      for (int i = currentFloor+1; i < 5; i++) {
+      for (byte i = currentFloor+1; i < 5; i++) {
         if (inputDestinationFloor[i] == true || inputButtonUp[i] == true){
-          Serial.println("test1");
+          Serial.println("Up");
           destinationFloor = i;
           noNext = false;        
           break;
@@ -113,7 +106,7 @@ void loop() {
       }
     }
     if(noNext){
-      for (int i = currentFloor+1; i < 5; i++) {
+      for (byte i = currentFloor+1; i < 5; i++) {
         if (inputButtonDown[i] == true){
           destinationFloor = i;
           noNext = false;
@@ -122,26 +115,23 @@ void loop() {
       }
     }
     if(noNext){
-      // Flip direction
-      elevatorDirection = false;
+      elevatorDirection = false; // Flip direction
     }
   } else {
     bool noNext = true;
     inputButtonDown[currentFloor] = 0;
     if(currentFloor > 0){
-      for (int i = currentFloor-1; i >= 0; i--) {
+      for (byte i = currentFloor-1; i >= 0; i--) {
         if (inputDestinationFloor[i] == true || inputButtonDown[i] == true){
-          Serial.println("test2");
+          Serial.println("Down");
           destinationFloor = i;
           noNext = false;
           break;
-
-        
         }
       }
     }
     if(noNext){
-      for (int i = currentFloor-1; i >= 0; i--) {
+      for (byte i = currentFloor-1; i >= 0; i--) {
         if (inputButtonUp[i] == true){
           destinationFloor = i;
           noNext = false;
@@ -150,24 +140,29 @@ void loop() {
       }
     }
     if(noNext){
-      // Flip direction
-      elevatorDirection = true;
+      elevatorDirection = true; // Flip direction
     }
   }
 
   if (currentFloor != destinationFloor){
     useMotor(elevatorDirection);
+    delayOnce = true;
   }
-  else{
+  else {
     inputDestinationFloor[currentFloor] = false;
+    if(delayOnce){
+      delayOnce = false;
+      delay(3000); // Once
+    }
   }
 
 
+  /*// Debug
   Serial.print("inputDestinationFloor array: ");
   for (int i = 0; i < 5; i++) {
     Serial.print(inputDestinationFloor[i]);
     Serial.print(" ");
-  }
+  }*/
 
 
   receiveData();
@@ -182,6 +177,7 @@ void sendData() {
     Wire.beginTransmission(floorAddress[i]); //begin transmission
     Wire.write(currentFloor);
     Wire.write(elevatorDirection);
+    Wire.write(destinationFloor);
     Wire.endTransmission(); //end transmission
   }
 }
@@ -214,7 +210,7 @@ void setDisplay (int number) {
 
 
 
-void useMotor(int goUp){ // 0 = Down, 1 = Up
+void useMotor(byte goUp){ // 0 = Down, 1 = Up
   // Step one revolution in one direction:
   if (goUp == 1){ // Up
     myStepper.step(-stepsPerRevolution);
