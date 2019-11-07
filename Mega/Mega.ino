@@ -10,9 +10,9 @@ const int floorAddress[5] = {9, 10, 11, 12, 13};
 #define ANSWERSIZE 3
 
 /* Pins for 7-Segment Display */
-const byte latchPin = 12; // Pin connected to ST_CP of 74HC595
-const byte clockPin = 8; // Pin connected to SH_CP of 74HC595
-const byte dataPin = 11; // Pin connected to DS of 74HC595
+const int latchPin = 12; // Pin connected to ST_CP of 74HC595
+const int clockPin = 8; // Pin connected to SH_CP of 74HC595
+const int dataPin = 11; // Pin connected to DS of 74HC595
 byte segData[10] = {125, 48, 110, 122, 51, 91, 95, 112, 127, 123}; // Array without the decimal
 
 
@@ -63,7 +63,9 @@ void setup() {
 
   currentFloor = 0;
   Wire.begin();
-  myStepper.setSpeed(100);
+  myStepper.setSpeed(300);
+
+  setDisplay(currentFloor);
 }
 
 
@@ -71,11 +73,11 @@ void loop() {
   char key = keypad.getKey();
   
   // choose floor
-  if (key == '0') {inputDestinationFloor[0] = true;}
-  if (key == '1') {inputDestinationFloor[1] = true;}
-  if (key == '2') {inputDestinationFloor[2] = true;}
-  if (key == '3') {inputDestinationFloor[3] = true;}
-  if (key == '4') {inputDestinationFloor[4] = true;}
+  if (key == '0') {inputDestinationFloor[0] = true; Serial.println("0");}
+  if (key == '1') {inputDestinationFloor[1] = true; Serial.println("1");}
+  if (key == '2') {inputDestinationFloor[2] = true; Serial.println("2");}
+  if (key == '3') {inputDestinationFloor[3] = true; Serial.println("3");}
+  if (key == '4') {inputDestinationFloor[4] = true; Serial.println("4");}
   
   //choose speed
   //if (key == '*') {motorDir = 0;}
@@ -96,7 +98,7 @@ void loop() {
     bool noNext = true;
     inputButtonUp[currentFloor] = 0;  
     if(currentFloor < 4){
-      for (byte i = currentFloor+1; i < 5; i++) {
+      for (int i = currentFloor+1; i < 5; i++) {
         if (inputDestinationFloor[i] == true || inputButtonUp[i] == true){
           Serial.println("Up");
           destinationFloor = i;
@@ -106,7 +108,7 @@ void loop() {
       }
     }
     if(noNext){
-      for (byte i = currentFloor+1; i < 5; i++) {
+      for (int i = currentFloor+1; i < 5; i++) {
         if (inputButtonDown[i] == true){
           destinationFloor = i;
           noNext = false;
@@ -121,7 +123,7 @@ void loop() {
     bool noNext = true;
     inputButtonDown[currentFloor] = 0;
     if(currentFloor > 0){
-      for (byte i = currentFloor-1; i >= 0; i--) {
+      for (int i = currentFloor-1; i >= 0; i--) {
         if (inputDestinationFloor[i] == true || inputButtonDown[i] == true){
           Serial.println("Down");
           destinationFloor = i;
@@ -131,7 +133,7 @@ void loop() {
       }
     }
     if(noNext){
-      for (byte i = currentFloor-1; i >= 0; i--) {
+      for (int i = currentFloor-1; i >= 0; i--) {
         if (inputButtonUp[i] == true){
           destinationFloor = i;
           noNext = false;
@@ -157,12 +159,19 @@ void loop() {
   }
 
 
-  /*// Debug
+  /*
+  // Debug
+  Serial.println(currentFloor);
+  Serial.println(elevatorDirection);
+  Serial.println(destinationFloor);
   Serial.print("inputDestinationFloor array: ");
   for (int i = 0; i < 5; i++) {
     Serial.print(inputDestinationFloor[i]);
     Serial.print(" ");
-  }*/
+  }
+  Serial.println();
+  */
+  
 
 
   receiveData();
@@ -193,7 +202,7 @@ void receiveData() {
         inputDestinationFloor[currentFloor] = false;
         if (!elevatorDirection){inputButtonUp[currentFloor] = 0;}
         else if (elevatorDirection) {inputButtonDown[currentFloor] = 0;}
-        }
+      }
       inputButtonDown[i] = Wire.read();
       inputButtonUp[i] = Wire.read();
     }
@@ -202,7 +211,7 @@ void receiveData() {
 
 
 
-void setDisplay (int number) {
+void setDisplay(int number) {
   digitalWrite(latchPin, LOW);
   shiftOut(dataPin, clockPin, LSBFIRST, segData[number]);
   digitalWrite(latchPin, HIGH);
@@ -210,7 +219,7 @@ void setDisplay (int number) {
 
 
 
-void useMotor(byte goUp){ // 0 = Down, 1 = Up
+void useMotor(int goUp){ // 0 = Down, 1 = Up
   // Step one revolution in one direction:
   if (goUp == 1){ // Up
     myStepper.step(-stepsPerRevolution);

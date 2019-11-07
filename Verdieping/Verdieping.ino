@@ -76,6 +76,8 @@ void setup() {
   /* Setup Serial Monitor */
   Serial.begin(9600);
   Serial.println((String)"Floor: " + localFloor + " Online!");
+
+  setDisplay(currentFloor);
 }
 
 
