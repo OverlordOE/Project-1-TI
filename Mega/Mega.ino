@@ -33,8 +33,9 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 //motor
 const int stepsPerRevolution = 32;
 Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
-static unsigned long startTime;
-bool startTimer = false;
+unsigned long doorDelayTime;
+unsigned long defaultDoorDelayTime = 3000;
+bool doorDelayOnce = true;
 
 // Array for receiving inputs
 bool inputButtonDown[5] = {0, 0, 0, 0, 0};
@@ -48,7 +49,7 @@ byte currentFloor;
 
 //byte motorDir = 2; // Testing
 
-bool delayOnce = true;
+
 
 
 
@@ -62,7 +63,6 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Lift Master");
 
-  currentFloor = 0;
   Wire.begin();
   myStepper.setSpeed(300);
 
@@ -88,102 +88,95 @@ void loop() {
   if (key == 'B') {myStepper.setSpeed(300);}
   if (key == 'C') {myStepper.setSpeed(500);}
   //useMotor(motorDir);
+
+
+
+  if(millis() - doorDelayTime > defaultDoorDelayTime) { // Dont run this code while the door is open
   
-  //7Seg test  
-  //currentFloor++;
-  //if (currentFloor > 4) {currentFloor=0;}
-
-  sendData();
-
-  if (elevatorDirection){
-    bool noNext = true;
-    inputButtonUp[currentFloor] = 0;  
-    if(currentFloor < 4){
-      for (int i = currentFloor+1; i < 5; i++) {
-        if (inputDestinationFloor[i] == true || inputButtonUp[i] == true){
-          Serial.println("Up");
-          destinationFloor = i;
-          noNext = false;        
-          break;
-        }
-      }
-    }
-    if(noNext){
-      for (int i = currentFloor+1; i < 5; i++) {
-        if (inputButtonDown[i] == true){
-          destinationFloor = i;
-          noNext = false;
-          break;
-        }
-      }
-    }
-    if(noNext){
-      elevatorDirection = false; // Flip direction
-    }
-  } else {
-    bool noNext = true;
-    inputButtonDown[currentFloor] = 0;
-    if(currentFloor > 0){
-      for (int i = currentFloor-1; i >= 0; i--) {
-        if (inputDestinationFloor[i] == true || inputButtonDown[i] == true){
-          Serial.println("Down");
-          destinationFloor = i;
-          noNext = false;
-          break;
-        }
-      }
-    }
-    if(noNext){
-      for (int i = currentFloor-1; i >= 0; i--) {
-        if (inputButtonUp[i] == true){
-          destinationFloor = i;
-          noNext = false;
-          break;
-        }
-      }
-    }
-    if(noNext){
-      elevatorDirection = true; // Flip direction
-    }
-  }
-  Serial.println(startTime);
-  if (currentFloor != destinationFloor){
-    useMotor(elevatorDirection);
-    delayOnce = true;
-  }
-  else {
-    inputDestinationFloor[currentFloor] = false;
-    if(startTimer == false) {
-      startTimer = true;
-      static unsigned long startTime = millis();
-    }
-    if(delayOnce){
-      if ( millis () - startTime > 3000) { 
-        delayOnce = false;
-        startTimer= false;
-        startTime = millis (); // reset timer
-      }
-    }
-  }
-
-
-  /*
-  // Debug
-  Serial.println(currentFloor);
-  Serial.println(elevatorDirection);
-  Serial.println(destinationFloor);
-  Serial.print("inputDestinationFloor array: ");
-  for (int i = 0; i < 5; i++) {
-    Serial.print(inputDestinationFloor[i]);
-    Serial.print(" ");
-  }
-  Serial.println();
-  */
+    sendData();
   
-
-
-  receiveData();
-  setDisplay(currentFloor);
+    if (elevatorDirection){
+      bool noNext = true;
+      inputButtonUp[currentFloor] = 0;
+      if(currentFloor < 4){
+        for (int i = currentFloor+1; i < 5; i++) {
+          if (inputDestinationFloor[i] == true || inputButtonUp[i] == true){
+            Serial.println("Up");
+            destinationFloor = i;
+            noNext = false;
+            break;
+          }
+        }
+      }
+      if(noNext){
+        for (int i = currentFloor+1; i < 5; i++) {
+          if (inputButtonDown[i] == true){
+            destinationFloor = i;
+            noNext = false;
+            break;
+          }
+        }
+      }
+      if(noNext){
+        elevatorDirection = false; // Flip direction
+      }
+    } else {
+      bool noNext = true;
+      inputButtonDown[currentFloor] = 0;
+      if(currentFloor > 0){
+        for (int i = currentFloor-1; i >= 0; i--) {
+          if (inputDestinationFloor[i] == true || inputButtonDown[i] == true){
+            Serial.println("Down");
+            destinationFloor = i;
+            noNext = false;
+            break;
+          }
+        }
+      }
+      if(noNext){
+        for (int i = currentFloor-1; i >= 0; i--) {
+          if (inputButtonUp[i] == true){
+            destinationFloor = i;
+            noNext = false;
+            break;
+          }
+        }
+      }
+      if(noNext){
+        elevatorDirection = true; // Flip direction
+      }
+    }
+    if (currentFloor != destinationFloor){
+      useMotor(elevatorDirection);
+      doorDelayOnce = true;
+    }
+    else {
+      inputDestinationFloor[currentFloor] = false;
+      if(doorDelayOnce){
+        doorDelayTime = millis(); // Start delay
+        doorDelayOnce = false;
+      }
+    }
+  
+  
+    /*
+    // Debug
+    Serial.println(currentFloor);
+    Serial.println(elevatorDirection);
+    Serial.println(destinationFloor);
+    Serial.print("inputDestinationFloor array: ");
+    for (int i = 0; i < 5; i++) {
+      Serial.print(inputDestinationFloor[i]);
+      Serial.print(" ");
+    }
+    Serial.println();
+    */
+    
+  
+  
+    receiveData();
+    setDisplay(currentFloor);
+  }
   delay(50);
 }
 
