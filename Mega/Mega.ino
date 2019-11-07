@@ -33,6 +33,7 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 //motor
 const int stepsPerRevolution = 32;
 Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
+static unsigned long startTime = millis();
 
 
 // Array for receiving inputs
@@ -153,8 +154,10 @@ void loop() {
   else {
     inputDestinationFloor[currentFloor] = false;
     if(delayOnce){
-      delayOnce = false;
-      delay(3000); // Once
+      if ( millis () - startTime > 3000) { 
+        delayOnce = false;
+        startTime = millis (); // reset timer
+      }
     }
   }
 
