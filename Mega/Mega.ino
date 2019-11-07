@@ -33,8 +33,8 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 //motor
 const int stepsPerRevolution = 32;
 Stepper myStepper = Stepper(stepsPerRevolution, 2, 4, 3, 5); //motor
-static unsigned long startTime = millis();
-
+static unsigned long startTime;
+bool startTimer = false;
 
 // Array for receiving inputs
 bool inputButtonDown[5] = {0, 0, 0, 0, 0};
@@ -146,16 +146,21 @@ void loop() {
       elevatorDirection = true; // Flip direction
     }
   }
-
+  Serial.println(startTime);
   if (currentFloor != destinationFloor){
     useMotor(elevatorDirection);
     delayOnce = true;
   }
   else {
     inputDestinationFloor[currentFloor] = false;
+    if(startTimer == false) {
+      startTimer = true;
+      static unsigned long startTime = millis();
+    }
     if(delayOnce){
       if ( millis () - startTime > 3000) { 
         delayOnce = false;
+        startTimer= false;
         startTime = millis (); // reset timer
       }
     }
