@@ -92,8 +92,20 @@ void loop() {
 
 
   if(millis() - doorDelayTime > defaultDoorDelayTime) { // Dont run this code while the door is open
-  
+
     sendData();
+
+    if (currentFloor != destinationFloor){
+      useMotor(elevatorDirection);
+      doorDelayOnce = true;
+    }
+    else {
+      inputDestinationFloor[currentFloor] = false;
+      if(doorDelayOnce){
+        doorDelayTime = millis(); // Start delay
+        doorDelayOnce = false;
+      }
+    }
   
     if (elevatorDirection){
       bool noNext = true;
@@ -146,18 +158,7 @@ void loop() {
         elevatorDirection = true; // Flip direction
       }
     }
-    if (currentFloor != destinationFloor){
-      useMotor(elevatorDirection);
-      doorDelayOnce = true;
-    }
-    else {
-      inputDestinationFloor[currentFloor] = false;
-      if(doorDelayOnce){
-        doorDelayTime = millis(); // Start delay
-        doorDelayOnce = false;
-      }
-    }
-  
+    
   
     /*
     // Debug
